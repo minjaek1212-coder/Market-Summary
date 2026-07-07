@@ -163,56 +163,50 @@
         
     </div>
 
-    <script>
+<script>
         async function fetchLatestMarketData() {
-            // 제공해주신 구글 시트 ID를 기반으로 주소 설정 (gviz를 사용해 CSV 데이터로 읽어옴)
             const sheetId = '1SBD-To57_OOvAnB3a4vmN9fURD0wZgIR_hXaoIZPLpc';
-            const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv`;
+            // 데이터를 CSV 대신 구글 시트 공식 JSON 구조로 가져와 안전하게 파싱합니다.
+            const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
 
             try {
                 const response = await fetch(url);
-                const data = await response.text();
+                const text = await response.text();
                 
-                // CSV 데이터를 줄 단위로 나눕니다.
-                const lines = data.split('\n');
-                if (lines.length <= 1) {
+                // 구글 gviz API가 반환하는 불필요한 앞뒤 텍스트를 제거하고 순수한 JSON 데이터만 추출합니다.
+                const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+                const jsonData = JSON.parse(jsonString);
+                
+                const rows = jsonData.table.rows;
+                if (!rows || rows.length === 0) {
                     document.getElementById('stock-market-content').innerText = "시트 안에 데이터가 존재하지 않습니다.";
                     return;
                 }
 
-                // 가장 마지막 행(최신 데이터)을 가져옵니다.
-                // 빈 줄이 맨 끝에 있을 수 있으므로 체크하여 실제 데이터가 있는 마지막 행을 선택합니다.
-                let lastLine = lines[lines.length - 1];
-                if (!lastLine.trim() && lines.length > 2) {
-                    lastLine = lines[lines.length - 2];
-                }
-
-                // 구글 시트에서 gviz 출력 시 각 칸의 텍스트가 따옴표(")로 감싸져 나오므로 이를 정제합니다.
-                // 정규식을 사용해 따옴표 안의 쉼표는 무시하고 칸을 분리합니다.
-                const matches = lastLine.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+                // 가장 마지막 행(최신 데이터)을 선택합니다.
+                const lastRow = rows[rows.length - 1];
                 
-                if (matches && matches.length >= 2) {
-                    // 따옴표 제거 가공
-                    let dateVal = matches[0].replace(/^"|"$/g, '').trim();
-                    let briefVal = matches[1].replace(/^"|"$/g, '').trim();
+                // A열(Date)과 B열(Stock_Brief) 데이터를 안전하게 가져옵니다.
+                // 본문 내용에 쉼표(,)나 따옴표가 있어도 절대 깨지지 않습니다.
+                let dateVal = lastRow.c[0] ? lastRow.c[0].v : '날짜 없음';
+                let briefVal = lastRow.c[1] ? lastRow.c[1].v : '내용 없음';
 
-                    // 엑셀에서 줄바꿈(\n)된 것들이 깨지지 않도록 정돈
-                    briefVal = briefVal.replace(/\\n/g, '\n');
-
-                    // 화면의 각 자리에 데이터 심어주기
-                    document.getElementById('stock-market-content').innerText = briefVal;
-                    document.getElementById('live-update-date').innerText = `최종 업데이트: ${dateVal}`;
-                } else {
-                    document.getElementById('stock-market-content').innerText = "데이터 파싱에 실패했습니다. 시트 형식을 확인해 주세요.";
+                // 구글 시트 내부의 날짜 포맷팅 대응 (만약 구글 날짜 객체로 들어올 경우 정제)
+                if (typeof dateVal === 'string' && dateVal.startsWith('Date')) {
+                    dateVal = new Date(eval(dateVal)).toLocaleDateString();
                 }
+
+                // 화면의 각 자리에 완벽하게 매칭하여 데이터 심어주기
+                document.getElementById('stock-market-content').innerText = briefVal;
+                document.getElementById('live-update-date').innerText = `최종 업데이트: ${dateVal}`;
 
             } catch (error) {
                 console.error("Error fetching sheet data:", error);
-                document.getElementById('stock-market-content').innerText = "시황 데이터를 불러오는 도중 오류가 발생했습니다. 구글 시트의 [공유] 설정이 '링크가 있는 모든 사용자'로 되어 있는지 확인해 주세요.";
+                document.getElementById('stock-market-content').innerText = "시황 데이터를 로딩하는 도중 오류가 발생했습니다. 시트 안의 데이터 구조를 확인해 주세요.";
             }
         }
 
-        // 페이지가 열리자마자 자동으로 구글 시트 데이터 가져오기 실행
+        // 페이지가 열리자마자 자동으로 실행
         window.onload = fetchLatestMarketData;
     </script>
 </body>
