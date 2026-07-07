@@ -3,74 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Market Summary</title>
+    <title>Daily Market Summary Dashboard</title>
     <style>
-        /* 화면 전체의 기본 디자인을 정합니다 (어두운 테마) */
+        /* 기본 스타일 및 색상 테마 정의 */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #121214;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0f1115;
             color: #e2e8f0;
             margin: 0;
-            padding: 20px;
+            padding: 24px;
             line-height: 1.6;
         }
-        /* 내용을 담는 전체 박스 설정 */
         .container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
         }
-        /* 메인 제목 스타일 */
+        
+        /* 상단 헤더 */
         header {
-            border-bottom: 2px solid #2d3748;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 1px solid #1e293b;
             padding-bottom: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 32px;
         }
         header h1 {
-            color: #f7fafc;
-            margin: 0 0 10px 0;
-            font-size: 28px;
+            color: #ffffff;
+            margin: 0;
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
         .date {
-            color: #a0aec0;
+            color: #94a3b8;
             font-size: 14px;
         }
-        /* 각 세션(구역) 스타일 */
-        section {
-            background-color: #1a1a1e;
-            border: 1px solid #2d3748;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 25px;
+
+        /* 대시보드 카드 스타일 */
+        .card {
+            background-color: #161b22;
+            border: 1px solid #21262d;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-        section h2 {
-            color: #38bdf8;
+        .card h2 {
             margin-top: 0;
-            border-left: 4px solid #38bdf8;
-            padding-left: 10px;
-            font-size: 20px;
+            margin-bottom: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
         }
-        /* 리스트 및 버튼 디자인 */
+        
+        /* 카드별 포인트 색상 상단 바 */
+        .card.stock { border-top: 4px solid #38bdf8; }
+        .card.stock h2 { color: #38bdf8; }
+        .card.brief { border-top: 4px solid #34d399; }
+        .card.brief h2 { color: #34d399; }
+        .card.reports { border-top: 4px solid #fbbf24; }
+        .card.reports h2 { color: #fbbf24; }
+
+        /* 시황 텍스트 스타일 */
+        .market-text {
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 14.5px;
+            white-space: pre-wrap; /* 줄바꿈 문자열 그대로 표현 */
+            color: #c9d1d9;
+        }
+
+        /* 로딩 애니메이션 스타일 */
+        .loading {
+            color: #8b949e;
+            font-style: italic;
+            animation: blink 1.5s infinite;
+        }
+        @keyframes blink {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        /* 리스트 스타일 */
         ul {
             padding-left: 20px;
-            margin: 10px 0;
+            margin: 0;
         }
         li {
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            font-size: 14.5px;
+        }
+        li strong {
+            color: #f8fafc;
+        }
+
+        /* 링크 버튼 스타일 */
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
         }
         .btn-link {
-            display: inline-block;
-            background-color: #2d3748;
-            color: #f7fafc;
+            background-color: #21262d;
+            color: #c9d1d9;
             text-decoration: none;
-            padding: 8px 16px;
+            padding: 10px 20px;
             border-radius: 6px;
             font-size: 14px;
-            margin-right: 10px;
-            transition: background 0.2s;
+            font-weight: 500;
+            border: 1px solid #30363d;
+            transition: all 0.2s ease;
         }
         .btn-link:hover {
-            background-color: #38bdf8;
-            color: #121214;
+            background-color: #30363d;
+            color: #ffffff;
+            border-color: #8b949e;
         }
     </style>
 </head>
@@ -79,29 +134,86 @@
     <div class="container">
         <header>
             <h1>📈 Daily Market Summary</h1>
-            <div class="date">최종 업데이트: 2026년 7월 7일 (화)</div>
+            <div class="date" id="live-update-date">최종 업데이트: 로딩 중...</div>
         </header>
 
-        <section>
-            <h2>Today's Market Briefing</h2>
-            <p>오늘 오전 시장 요약 및 주요 이벤트 기록 구역입니다.</p>
+        <div class="card stock">
+            <h2>📊 Daily Stock Market Info</h2>
+            <div class="market-text" id="stock-market-content">
+                <span class="loading">구글 시트로부터 최신 시황을 불러오는 중입니다...</span>
+            </div>
+        </div>
+
+        <div class="card brief">
+            <h2>📝 Today's Market Briefing</h2>
             <ul>
                 <li><strong>국내 금리:</strong> 전일 미국채 금리 흐름을 반영하며 보합세 출발 예상.</li>
                 <li><strong>환율 동향:</strong> 달러 인덱스 추이에 따라 변동성 확대 가능성 있음.</li>
                 <li><strong>특이 사항:</strong> 외국인 자금 동향 및 주요 거시지표 발표 일정 체크 필요.</li>
             </ul>
-        </section>
+        </div>
 
-        <section>
-            <h2>Foreign Bank Reports</h2>
-            <p>외국계 은행 및 글로벌 기관들의 주요 자료 링크 리스트입니다.</p>
-            <div>
+        <div class="card reports">
+            <h2>🌐 Foreign Bank Reports</h2>
+            <div class="btn-group">
                 <a href="https://www.bloomberg.com" target="_blank" class="btn-link">Bloomberg 바로가기</a>
                 <a href="https://www.reuters.com" target="_blank" class="btn-link">Reuters 바로가기</a>
-                </div>
-        </section>
+            </div>
+        </div>
         
     </div>
 
+    <script>
+        async function fetchLatestMarketData() {
+            // 제공해주신 구글 시트 ID를 기반으로 주소 설정 (gviz를 사용해 CSV 데이터로 읽어옴)
+            const sheetId = '1SBD-To57_OOvAnB3a4vmN9fURD0wZgIR_hXaoIZPLpc';
+            const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.text();
+                
+                // CSV 데이터를 줄 단위로 나눕니다.
+                const lines = data.split('\n');
+                if (lines.length <= 1) {
+                    document.getElementById('stock-market-content').innerText = "시트 안에 데이터가 존재하지 않습니다.";
+                    return;
+                }
+
+                // 가장 마지막 행(최신 데이터)을 가져옵니다.
+                // 빈 줄이 맨 끝에 있을 수 있으므로 체크하여 실제 데이터가 있는 마지막 행을 선택합니다.
+                let lastLine = lines[lines.length - 1];
+                if (!lastLine.trim() && lines.length > 2) {
+                    lastLine = lines[lines.length - 2];
+                }
+
+                // 구글 시트에서 gviz 출력 시 각 칸의 텍스트가 따옴표(")로 감싸져 나오므로 이를 정제합니다.
+                // 정규식을 사용해 따옴표 안의 쉼표는 무시하고 칸을 분리합니다.
+                const matches = lastLine.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+                
+                if (matches && matches.length >= 2) {
+                    // 따옴표 제거 가공
+                    let dateVal = matches[0].replace(/^"|"$/g, '').trim();
+                    let briefVal = matches[1].replace(/^"|"$/g, '').trim();
+
+                    // 엑셀에서 줄바꿈(\n)된 것들이 깨지지 않도록 정돈
+                    briefVal = briefVal.replace(/\\n/g, '\n');
+
+                    // 화면의 각 자리에 데이터 심어주기
+                    document.getElementById('stock-market-content').innerText = briefVal;
+                    document.getElementById('live-update-date').innerText = `최종 업데이트: ${dateVal}`;
+                } else {
+                    document.getElementById('stock-market-content').innerText = "데이터 파싱에 실패했습니다. 시트 형식을 확인해 주세요.";
+                }
+
+            } catch (error) {
+                console.error("Error fetching sheet data:", error);
+                document.getElementById('stock-market-content').innerText = "시황 데이터를 불러오는 도중 오류가 발생했습니다. 구글 시트의 [공유] 설정이 '링크가 있는 모든 사용자'로 되어 있는지 확인해 주세요.";
+            }
+        }
+
+        // 페이지가 열리자마자 자동으로 구글 시트 데이터 가져오기 실행
+        window.onload = fetchLatestMarketData;
+    </script>
 </body>
 </html>
