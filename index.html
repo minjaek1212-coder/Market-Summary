@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daily Market Summary Dashboard</title>
     <style>
-        *, *::before, *::after { box-sizing: border-box; }
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #0f1115;
@@ -14,122 +16,127 @@
             padding: 24px;
             line-height: 1.6;
         }
-        .container { max-width: 1100px; margin: 0 auto; }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
         
-        /* 상단 헤더 구역 */
+        /* 상단 헤더 */
         header {
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
             border-bottom: 1px solid #1e293b;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
+            padding-bottom: 20px;
+            margin-bottom: 32px;
         }
-        header h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
-        .date { color: #94a3b8; font-size: 13px; }
-
-        /* 📈 실시간 금융 지표 위젯 레이아웃 (에러 우회 및 최적화 버전) */
-        .market-ticker-container {
-            width: 100%;
-            margin-bottom: 24px;
-            background-color: #161b22;
-            border: 1px solid #21262d;
-            border-radius: 10px;
-            padding: 10px 4px;
-            overflow: hidden;
+        header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .date {
+            color: #94a3b8;
+            font-size: 14px;
         }
 
-        /* 하단 대시보드 콘텐츠 카드 */
+        /* 대시보드 카드 스타일 */
         .card {
             background-color: #161b22;
             border: 1px solid #21262d;
             border-radius: 12px;
             padding: 24px;
             margin-bottom: 24px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-        .card h2 { margin-top: 0; margin-bottom: 16px; font-size: 18px; font-weight: 700; }
+        .card h2 {
+            margin-top: 0;
+            margin-bottom: 16px;
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+        
+        /* 블럭별 테마 색상 (주식: 블루, 금리: 그린, 외신: 옐로우) */
         .card.stock { border-top: 4px solid #38bdf8; }
         .card.stock h2 { color: #38bdf8; }
         .card.rate { border-top: 4px solid #34d399; }
         .card.rate h2 { color: #34d399; }
         .card.reports { border-top: 4px solid #fbbf24; }
         .card.reports h2 { color: #fbbf24; }
-        
+
+        /* 시황 텍스트 구역 */
         .market-text {
             background-color: #0d1117;
             border: 1px solid #30363d;
             border-radius: 8px;
             padding: 16px;
-            font-size: 14px;
+            font-size: 14.5px;
             white-space: pre-wrap;
             color: #c9d1d9;
         }
-        .loading { color: #8b949e; font-style: italic; animation: blink 1.5s infinite; }
-        @keyframes blink { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-        .btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
-        .btn-link {
-            background-color: #21262d; color: #c9d1d9; text-decoration: none; padding: 10px 18px;
-            border-radius: 6px; font-size: 13px; font-weight: 500; border: 1px solid #30363d; transition: all 0.2s ease;
+
+        /* 로딩 애니메이션 */
+        .loading {
+            color: #8b949e;
+            font-style: italic;
+            animation: blink 1.5s infinite;
         }
-        .btn-link:hover { background-color: #30363d; color: #ffffff; border-color: #8b949e; }
+        @keyframes blink { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+        /* 외신 링크 버튼 그룹 */
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .btn-link {
+            background-color: #21262d;
+            color: #c9d1d9;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            border: 1px solid #30363d;
+            transition: all 0.2s ease;
+        }
+        .btn-link:hover {
+            background-color: #30363d;
+            color: #ffffff;
+            border-color: #8b949e;
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
+        <!-- 상단 헤더 구역 -->
         <header>
             <h1>📈 데일리 시황 대시보드</h1>
             <div class="date" id="live-update-date">최종 업데이트: 로딩 중...</div>
         </header>
 
-        <div class="market-ticker-container">
-            <div class="tradingview-widget-container">
-                <div class="tradingview-widget-container__widget"></div>
-                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
-                {
-                "symbols": [
-                    {
-                    "proName": "AMEX:EWY",
-                    "title": "코스피 (MSCI KR)"
-                    },
-                    {
-                    "proName": "KRX:101M000",
-                    "title": "코스피200 선물 근월물"
-                    },
-                    {
-                    "proName": "TVC:US10Y",
-                    "title": "미국채 10년 금리"
-                    },
-                    {
-                    "proName": "ECONOMICS:KR10Y",
-                    "title": "한국채 10년 금리"
-                    }
-                ],
-                "showSymbolLogo": false,
-                "colorTheme": "dark",
-                "isTransparent": true,
-                "displayMode": "adaptive",
-                "locale": "ko"
-                }
-                </script>
-            </div>
-        </div>
-
+        <!-- 1. 주식 블럭 -->
         <div class="card stock">
-            <h2>📊 주식 시황</h2>
+            <h2>📊 주식</h2>
             <div class="market-text" id="stock-market-content">
                 <span class="loading">최신 주식 시황을 불러오는 중입니다...</span>
             </div>
         </div>
 
+        <!-- 2. 금리 블럭 -->
         <div class="card rate">
-            <h2>💸 금리 및 채권 시황</h2>
+            <h2>💸 금리</h2>
             <div class="market-text" id="rate-market-content">
                 <span class="loading">최신 금리 뉴스 및 채권 시황을 분석 중입니다...</span>
             </div>
         </div>
 
+        <!-- 3. 외신 링크 블럭 -->
         <div class="card reports">
             <h2>🌐 외신 링크</h2>
             <div class="btn-group">
@@ -137,8 +144,10 @@
                 <a href="https://www.reuters.com" target="_blank" class="btn-link">Reuters 바로가기</a>
             </div>
         </div>
+        
     </div>
 
+    <!-- 구글 시트 텍스트 무손실 JSON 실시간 연동 스크립트 -->
     <script>
         async function fetchLatestMarketData() {
             const sheetId = '1SBD-To57_OOvAnB3a4vmN9fURD0wZgIR_hXaoIZPLpc';
@@ -158,8 +167,10 @@
                     return;
                 }
 
+                // 가장 마지막 행 데이터 추출
                 const lastRow = rows[rows.length - 1];
                 
+                // 데이터 안전 매칭 (0번째: 날짜, 1번째: 주식, 2번째: 금리)
                 let dateVal = lastRow.c[0] ? lastRow.c[0].v : '날짜 없음';
                 let stockVal = lastRow.c[1] ? lastRow.c[1].v : '주식 시황 내용 없음';
                 let rateVal = lastRow.c[2] ? lastRow.c[2].v : '금리 시황 내용 없음';
@@ -168,6 +179,7 @@
                     dateVal = new Date(eval(dateVal)).toLocaleDateString();
                 }
 
+                // 화면 텍스트 최종 입력
                 document.getElementById('stock-market-content').innerText = stockVal;
                 document.getElementById('rate-market-content').innerText = rateVal;
                 document.getElementById('live-update-date').innerText = `최종 업데이트: ${dateVal}`;
