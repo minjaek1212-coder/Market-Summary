@@ -12,29 +12,22 @@
             color: #e2e8f0;
             margin: 0;
             padding: 24px;
-            line-height: 1.6;
+            line-height: 1.7;
         }
         .container { max-width: 1000px; margin: 0 auto; }
         
-        /* 📱 상단 메뉴바 */
+        /* 📱 상단 내비게이션 메뉴바 스타일 */
         .navbar {
-            display: flex;
-            gap: 8px;
-            background-color: #161b22;
-            border: 1px solid #21262d;
-            border-radius: 8px;
-            padding: 6px;
-            margin-bottom: 24px;
+            display: flex; gap: 8px; background-color: #161b22;
+            border: 1px solid #21262d; border-radius: 8px; padding: 6px; margin-bottom: 24px;
         }
         .nav-btn {
-            background: none; border: none; color: #8b949e;
-            padding: 10px 20px; font-size: 15px; font-weight: 600;
-            cursor: pointer; border-radius: 6px; transition: all 0.2s ease;
+            background: none; border: none; color: #8b949e; padding: 10px 20px;
+            font-size: 15px; font-weight: 600; cursor: pointer; border-radius: 6px; transition: all 0.2s ease;
         }
         .nav-btn:hover { color: #ffffff; background-color: #21262d; }
         .nav-btn.active { color: #ffffff; background-color: #38bdf8; }
 
-        /* 페이지 세션 제어 */
         .page { display: none; }
         .page.active { display: block; }
 
@@ -49,19 +42,35 @@
             background-color: #161b22; border: 1px solid #21262d; border-radius: 12px;
             padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
-        .card h2 { margin-top: 0; margin-bottom: 16px; font-size: 20px; font-weight: 700; }
+        .card h2 { margin-top: 0; margin-bottom: 20px; font-size: 22px; font-weight: 700; border-bottom: 1px solid #30363d; padding-bottom: 10px; }
         .card.stock { border-top: 4px solid #38bdf8; } .card.stock h2 { color: #38bdf8; }
         .card.rate { border-top: 4px solid #34d399; } .card.rate h2 { color: #34d399; }
         .card.intel { border-top: 4px solid #a855f7; } .card.intel h2 { color: #a855f7; }
         .card.reports { border-top: 4px solid #fbbf24; } .card.reports h2 { color: #fbbf24; }
 
+        /* 📑 전문 경제 뉴스 리포트 스타일링 구역 */
         .market-text {
             background-color: #0d1117; border: 1px solid #30363d; border-radius: 8px;
-            padding: 16px; font-size: 14.5px; white-space: pre-wrap; color: #c9d1d9;
+            padding: 24px; font-size: 15px; color: #c9d1d9;
         }
-        .no-opinion {
-            text-align: center; color: #8b949e; font-style: italic; padding: 40px 0; font-size: 16px;
+        
+        /* 실시간 파싱용 서식 스타일 클래스 */
+        .intel-section-title {
+            font-size: 18px; font-weight: 700; color: #f8fafc;
+            margin-top: 24px; margin-bottom: 12px; padding-left: 8px;
+            border-left: 4px solid #a855f7; display: block;
         }
+        .intel-section-title:first-child { margin-top: 0; }
+        
+        .intel-paragraph {
+            margin: 0 0 12px 0; padding-left: 4px; text-align: justify; word-break: break-all;
+        }
+        .intel-highlight {
+            color: #ffda6a; font-weight: 700; background-color: rgba(255, 218, 106, 0.08);
+            padding: 1px 4px; border-radius: 4px;
+        }
+
+        .no-opinion { text-align: center; color: #8b949e; font-style: italic; padding: 40px 0; font-size: 16px; }
         .loading { color: #8b949e; font-style: italic; animation: blink 1.5s infinite; }
         @keyframes blink { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
         .btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
@@ -107,7 +116,7 @@
                 <div class="date" id="intel-update-date">최종 업데이트: 로딩 중...</div>
             </header>
             <div class="card intel">
-                <h2 id="intel-title">Market Intel</h2>
+                <h2>Market Intel</h2>
                 <div class="market-text" id="intel-market-content">
                     <span class="loading">최신 인텔리전스 보고서를 조회 중입니다...</span>
                 </div>
@@ -125,11 +134,10 @@
 
         const sheetId = '1SBD-To57_OOvAnB3a4vmN9fURD0wZgIR_hXaoIZPLpc';
 
-        // 날짜 파싱 안정화 함수
+        // 구글 시트 고유 날짜 오브젝트 및 TODAY() 함수 규격을 가공하는 날짜 클리닝 함수
         function parseAndFormatDate(dateVal) {
             if (!dateVal) return null;
             let actualDate;
-            
             if (typeof dateVal === 'string' && dateVal.startsWith('Date')) {
                 try {
                     const dateParts = dateVal.match(/\d+/g).map(Number);
@@ -140,25 +148,52 @@
             } else {
                 actualDate = new Date(dateVal);
             }
-
             if (!actualDate || isNaN(actualDate.getTime())) return null;
-
             const year = actualDate.getFullYear();
             const month = String(actualDate.getMonth() + 1).padStart(2, '0');
             const day = String(actualDate.getDate()).padStart(2, '0');
+            return { display: `${year}. ${month}. ${day}.`, title: `${year}-${month}-${day}` };
+        }
+
+        // 🧠 마크다운 형식으로 들어온 원본 글을 블룸버그/JPM 인하우스 리포트 스타일로 변환하는 서식 엔진
+        function renderIntelReportToHTML(rawText) {
+            if (!rawText) return `<div class="no-opinion">금일 의견 없음</div>`;
             
-            return { 
-                display: `${year}. ${month}. ${day}.`, 
-                title: `${year}-${month}-${day}` 
-            };
+            const lines = rawText.split('\n');
+            let htmlOutput = "";
+
+            lines.forEach(line => {
+                let trimmed = line.trim();
+                if (!trimmed) return;
+
+                // 1. 소제목 라벨링 파싱 및 사이드 인디케이터 디자인 바인딩 (### 규칙 매칭)
+                if (trimmed.startsWith('###') || trimmed.startsWith('1.') || trimmed.startsWith('2.') || trimmed.startsWith('3.') || trimmed.startsWith('4.') || 
+                    trimmed.includes('주요 매크로 이벤트') || trimmed.includes('미국 주식시장 브리핑') || trimmed.includes('TMT') || trimmed.includes('MONETIZATION')) {
+                    
+                    let cleanTitle = trimmed.replace(/###/g, '').trim();
+                    htmlOutput += `<span class="intel-section-title">${cleanTitle}</span>`;
+                } 
+                else {
+                    // 2. 제미나이가 처리해서 내보낸 마크다운 볼드(**) 기호를 형광펜 테마로 치환 및 하이라이팅 후처리
+                    let formattedLine = trimmed.replace(/\*\*(.*?)\*\*/g, '<span class="intel-highlight">$1</span>');
+                    
+                    // 3. 누락된 핵심 트레이딩 변동 지표(수치 및 통화 단위 기호) 정규식 기반 2차 자동 필터링 강조
+                    formattedLine = formattedLine.replace(/(-?\d+(\.\d+)?\s?%|-?\d+\s?bp|\$\d+(\.\d+)?)/g, '<span class="intel-highlight">$1</span>');
+
+                    htmlOutput += `<p class="intel-paragraph">${formattedLine}</p>`;
+                }
+            });
+
+            return htmlOutput;
         }
 
         async function fetchAllData() {
+            // 주시스 시황용(gid=0)과 마켓 인텔 전용 고유 세션 ID(gid=1681828616) 명시 완료
             const urlDaily = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=0&tqx=out:json`;
             const urlIntel = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=1681828616&tqx=out:json`;
 
             try {
-                // 1. 데일리 시황 연동
+                // 1. 데일리 시황 파트 연동
                 const resDaily = await fetch(urlDaily);
                 const textDaily = await resDaily.text();
                 const jsonDaily = JSON.parse(textDaily.substring(textDaily.indexOf('{'), textDaily.lastIndexOf('}') + 1));
@@ -177,7 +212,7 @@
                     document.getElementById('rate-title').innerText = `💸 금리 (${titleDate})`;
                 }
 
-                // 2. Market Intel 연동 (B열 전체 텍스트 수집 병합 버전)
+                // 2. Market Intel 파트 연동 (노션 수동 다중 라인 병합 매핑 기법 탑재)
                 const resIntel = await fetch(urlIntel);
                 const textIntel = await resIntel.text();
                 const jsonIntel = JSON.parse(textIntel.substring(textIntel.indexOf('{'), textIntel.lastIndexOf('}') + 1));
@@ -194,31 +229,24 @@
                 let combinedReport = "";
                 let firstValidDateInfo = null;
 
-                // 💡 노션 복붙으로 인해 쪼개진 B열의 모든 유효한 텍스트 행을 위에서부터 차례대로 결합
+                // 시트 B열 전체에 걸쳐 엔터로 분할되어 정렬된 모든 원본 데이터를 하나의 블록으로 조합
                 rowsIntel.forEach(row => {
-                    // A열에 날짜가 존재하는 경우 (TODAY() 함수 등이 위치한 상단 행의 날짜 정보 수집)
                     if (row.c[0] && row.c[0].v && !firstValidDateInfo) {
                         firstValidDateInfo = parseAndFormatDate(row.c[0].v);
                     }
-                    
-                    // B열의 텍스트 조각들을 순서대로 누적 합산
                     if (row.c[1] && row.c[1].v) {
                         combinedReport += row.c[1].v + "\n";
                     }
                 });
 
-                // 최종 텍스트 출력 및 날짜 바인딩
-                if (!combinedReport.trim()) {
-                    intelContentEl.innerHTML = `<div class="no-opinion">금일 의견 없음</div>`;
-                } else {
-                    intelContentEl.innerText = combinedReport.trim();
-                }
+                // 수집 완료된 마켓 인텔 원문 데이터를 지능형 파서 엔진으로 송출
+                intelContentEl.innerHTML = renderIntelReportToHTML(combinedReport);
                 
                 let intelDisplayDate = firstValidDateInfo ? firstValidDateInfo.display : '날짜 없음';
                 document.getElementById('intel-update-date').innerText = `최종 업데이트: ${intelDisplayDate}`;
 
             } catch (error) {
-                console.error("데이터 통합 로딩 중 에러:", error);
+                console.error("데이터 통합 로딩 에러:", error);
             }
         }
 
