@@ -16,7 +16,7 @@
         }
         .container { max-width: 1000px; margin: 0 auto; }
         
-        /* 📱 상단 내비게이션 메뉴바 스타일 */
+        /* 📱 상단 메뉴바 */
         .navbar {
             display: flex;
             gap: 8px;
@@ -34,7 +34,7 @@
         .nav-btn:hover { color: #ffffff; background-color: #21262d; }
         .nav-btn.active { color: #ffffff; background-color: #38bdf8; }
 
-        /* 페이지 세션 제어용 */
+        /* 페이지 세션 제어 */
         .page { display: none; }
         .page.active { display: block; }
 
@@ -74,13 +74,11 @@
 <body>
 
     <div class="container">
-        <!-- 📱 상단 메뉴바 -->
         <nav class="navbar">
             <button class="nav-btn active" onclick="switchPage('daily-page', this)">📊 데일리 시황</button>
             <button class="nav-btn" onclick="switchPage('intel-page', this)">💡 Market Intel</button>
         </nav>
 
-        <!-- 1️⃣ 첫 번째 페이지: 데일리 시황 -->
         <div id="daily-page" class="page active">
             <header>
                 <h1>📈 데일리 시황 대시보드</h1>
@@ -103,7 +101,6 @@
             </div>
         </div>
 
-        <!-- 2️⃣ 두 번째 페이지: Market Intel (수동 복사-붙여넣기 무조건 노출형) -->
         <div id="intel-page" class="page">
             <header>
                 <h1>💡 Market Intel 심층 분석</h1>
@@ -119,7 +116,6 @@
     </div>
 
     <script>
-        // 페이지 탭 전환 함수
         function switchPage(pageId, btn) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -129,22 +125,49 @@
 
         const sheetId = '1SBD-To57_OOvAnB3a4vmN9fURD0wZgIR_hXaoIZPLpc';
 
-        // 가장 안전한 원본 날짜 포맷터
-        function formatDate(dateVal) {
-            let actualDate = (typeof dateVal === 'string' && dateVal.startsWith('Date')) ? new Date(eval(dateVal)) : new Date(dateVal);
-            if (isNaN(actualDate.getTime())) return { display: '날짜 없음', title: 'XXXX-XX-XX' };
+        // 🛠️ TODAY() 함수나 일반 텍스트 날짜를 완벽하게 정제하는 마스터 포맷터
+        function parseAndFormatDate(dateVal) {
+            if (!dateVal) return { display: '날짜 없음', title: 'XXXX-XX-XX' };
+            
+            let actualDate;
+            
+            // 구글 시트 함수(TODAY 등) 특유의 Date(2026,6,8) 문자열 포맷 차단 해제 로직
+            if (typeof dateVal === 'string' && dateVal.startsWith('Date')) {
+                try {
+                    // 'Date(2026,6,8)' 형태에서 내부 숫자 배열만 추출하여 안전하게 날짜 객체 생성
+                    const dateParts = dateVal.match(/\d+/g).map(Number);
+                    if (dateParts.length >= 3) {
+                        // 자바스크립트는 월이 0부터 시작하므로 구글 시트가 준 월 값 그대로 인자값 매칭 가능
+                        actualDate = new Date(dateParts[0], dateParts[1], dateParts[2]);
+                    }
+                } catch(e) {
+                    console.error("구글 함수 날짜 파싱 실패", e);
+                }
+            } else {
+                actualDate = new Date(dateVal);
+            }
+
+            if (!actualDate || isNaN(actualDate.getTime())) {
+                return { display: '날짜 없음', title: 'XXXX-XX-XX' };
+            }
+
             const year = actualDate.getFullYear();
             const month = String(actualDate.getMonth() + 1).padStart(2, '0');
             const day = String(actualDate.getDate()).padStart(2, '0');
-            return { display: actualDate.toLocaleDateString(), title: `${year}-${month}-${day}` };
+            
+            return { 
+                display: `${year}. ${month}. ${day}.`, 
+                title: `${year}-${month}-${day}` 
+            };
         }
 
         async function fetchAllData() {
+            // 데일리 시황(gid=0)과 Market Intel(gid=1681828616) 고유 번호 주소로 타겟팅 변경 완료
             const urlDaily = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=0&tqx=out:json`;
-            const urlIntel = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?sheet=Market+Intel&tqx=out:json`;
+            const urlIntel = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=1681828616&tqx=out:json`;
 
             try {
-                // 1. 데일리 시황 처리 (무조건 안전 복구)
+                // 1. 데일리 시황 연동
                 const resDaily = await fetch(urlDaily);
                 const textDaily = await resDaily.text();
                 const jsonDaily = JSON.parse(textDaily.substring(textDaily.indexOf('{'), textDaily.lastIndexOf('}') + 1));
@@ -152,15 +175,16 @@
 
                 if (rowsDaily && rowsDaily.length > 0) {
                     const lastRow = rowsDaily[rowsDaily.length - 1];
-                    let dateInfo = formatDate(lastRow.c[0] ? lastRow.c[0].v : null);
+                    let dailyDateInfo = parseAndFormatDate(lastRow.c[0] ? lastRow.c[0].v : null);
+                    
                     document.getElementById('stock-market-content').innerText = lastRow.c[1] ? lastRow.c[1].v : '내용 없음';
                     document.getElementById('rate-market-content').innerText = lastRow.c[2] ? lastRow.c[2].v : '내용 없음';
-                    document.getElementById('live-update-date').innerText = `최종 업데이트: ${dateInfo.display}`;
-                    document.getElementById('stock-title').innerText = `📊 주식 (${dateInfo.title})`;
-                    document.getElementById('rate-title').innerText = `💸 금리 (${dateInfo.title})`;
+                    document.getElementById('live-update-date').innerText = `최종 업데이트: ${dailyDateInfo.display}`;
+                    document.getElementById('stock-title').innerText = `📊 주식 (${dailyDateInfo.title})`;
+                    document.getElementById('rate-title').innerText = `💸 금리 (${dailyDateInfo.title})`;
                 }
 
-                // 2. Market Intel 처리 (날짜 조건 없이 시트 최신 내용을 있는 그대로 출력)
+                // 2. Market Intel 연동 (gid 번호 매칭 및 TODAY 함수 완벽 우회 버전)
                 const resIntel = await fetch(urlIntel);
                 const textIntel = await resIntel.text();
                 const jsonIntel = JSON.parse(textIntel.substring(textIntel.indexOf('{'), textIntel.lastIndexOf('}') + 1));
@@ -174,14 +198,14 @@
                     return;
                 }
 
+                // 가장 최신 행(2번째 줄) 추출
                 const lastIntelRow = rowsIntel[rowsIntel.length - 1];
-                let intelDateInfo = formatDate(lastIntelRow.c[0] ? lastIntelRow.c[0].v : null);
+                let intelDateInfo = parseAndFormatDate(lastIntelRow.c[0] ? lastIntelRow.c[0].v : null);
                 let intelReport = lastIntelRow.c[1] ? lastIntelRow.c[1].v : null;
 
                 if (!intelReport) {
                     intelContentEl.innerHTML = `<div class="no-opinion">금일 의견 없음</div>`;
                 } else {
-                    // 수동 업로드이므로 날짜 비교하지 않고 시트에 적힌 내용을 무조건 화면에 시원하게 출력합니다.
                     intelContentEl.innerText = intelReport;
                 }
                 
@@ -189,7 +213,7 @@
                 document.getElementById('intel-title').innerText = `📋 딥러닝 PDF 분석 보고서 (${intelDateInfo.title})`;
 
             } catch (error) {
-                console.error("데이터 로딩 오류:", error);
+                console.error("데이터 통합 로딩 중 에러:", error);
             }
         }
 
