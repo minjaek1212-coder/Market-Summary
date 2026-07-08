@@ -114,29 +114,25 @@
 <body>
 
     <div class="container">
-        <!-- 상단 헤더 구역 -->
         <header>
             <h1>📈 데일리 시황 대시보드</h1>
             <div class="date" id="live-update-date">최종 업데이트: 로딩 중...</div>
         </header>
 
-        <!-- 1. 주식 블럭 -->
         <div class="card stock">
-            <h2>📊 주식</h2>
+            <h2 id="stock-title">📊 주식</h2>
             <div class="market-text" id="stock-market-content">
                 <span class="loading">최신 주식 시황을 불러오는 중입니다...</span>
             </div>
         </div>
 
-        <!-- 2. 금리 블럭 -->
         <div class="card rate">
-            <h2>💸 금리</h2>
+            <h2 id="rate-title">💸 금리</h2>
             <div class="market-text" id="rate-market-content">
                 <span class="loading">최신 금리 뉴스 및 채권 시황을 분석 중입니다...</span>
             </div>
         </div>
 
-        <!-- 3. 외신 링크 블럭 -->
         <div class="card reports">
             <h2>🌐 외신 링크</h2>
             <div class="btn-group">
@@ -147,7 +143,6 @@
         
     </div>
 
-    <!-- 구글 시트 텍스트 무손실 JSON 실시간 연동 스크립트 -->
     <script>
         async function fetchLatestMarketData() {
             const sheetId = '1SBD-To57_OOvAnB3a4vmN9fURD0wZgIR_hXaoIZPLpc';
@@ -170,19 +165,45 @@
                 // 가장 마지막 행 데이터 추출
                 const lastRow = rows[rows.length - 1];
                 
-                // 데이터 안전 매칭 (0번째: 날짜, 1번째: 주식, 2번째: 금리)
-                let dateVal = lastRow.c[0] ? lastRow.c[0].v : '날짜 없음';
+                // 데이터 매칭 (0번째: 날짜, 1번째: 주식, 2번째: 금리)
+                let dateVal = lastRow.c[0] ? lastRow.c[0].v : null;
                 let stockVal = lastRow.c[1] ? lastRow.c[1].v : '주식 시황 내용 없음';
                 let rateVal = lastRow.c[2] ? lastRow.c[2].v : '금리 시황 내용 없음';
 
-                if (typeof dateVal === 'string' && dateVal.startsWith('Date')) {
-                    dateVal = new Date(eval(dateVal)).toLocaleDateString();
+                let displayDate = '날짜 없음';
+                let formattedTitleDate = 'XXXX-XX-XX';
+
+                if (dateVal) {
+                    let actualDate;
+                    // 구글 시트 내부의 Date 객체 포맷팅 대응
+                    if (typeof dateVal === 'string' && dateVal.startsWith('Date')) {
+                        actualDate = new Date(eval(dateVal));
+                    } else {
+                        actualDate = new Date(dateVal);
+                    }
+
+                    if (!isNaN(actualDate.getTime())) {
+                        // (1) 우측 상단용 로컬 날짜 문자열 정제 (예: "2026. 7. 8.")
+                        displayDate = actualDate.toLocaleDateString();
+
+                        // (2) 블럭 제목용 YYYY-MM-DD 포맷 수동 변환
+                        const year = actualDate.getFullYear();
+                        const month = String(actualDate.getMonth() + 1).padStart(2, '0');
+                        const day = String(actualDate.getDate()).padStart(2, '0');
+                        formattedTitleDate = `${year}-${month}-${day}`;
+                    }
                 }
 
-                // 화면 텍스트 최종 입력
+                // 화면 텍스트 최종 업데이트
                 document.getElementById('stock-market-content').innerText = stockVal;
                 document.getElementById('rate-market-content').innerText = rateVal;
-                document.getElementById('live-update-date').innerText = `최종 업데이트: ${dateVal}`;
+                
+                // (1) 우측 상단 헤더 날짜 업데이트
+                document.getElementById('live-update-date').innerText = `최종 업데이트: ${displayDate}`;
+                
+                // (2) 제목 뒤에 (YYYY-MM-DD) 붙여주기
+                document.getElementById('stock-title').innerText = `📊 주식 (${formattedTitleDate})`;
+                document.getElementById('rate-title').innerText = `💸 금리 (${formattedTitleDate})`;
 
             } catch (error) {
                 console.error("Error fetching sheet data:", error);
