@@ -103,7 +103,7 @@
             </div>
         </div>
 
-        <!-- 2️⃣ 두 번째 페이지: Market Intel (수동 복사-붙여넣기 연동형) -->
+        <!-- 2️⃣ 두 번째 페이지: Market Intel -->
         <div id="intel-page" class="page">
             <header>
                 <h1>💡 Market Intel 심층 분석</h1>
@@ -128,32 +128,40 @@
 
         const sheetId = '1SBD-To57_OOvAnB3a4vmN9fURD0wZgIR_hXaoIZPLpc';
 
-        // 날짜 변환 및 포맷팅 보조 함수
-        function formatDate(dateVal) {
-            if (!dateVal) return { display: '날짜 없음', title: 'XXXX-XX-XX', formattedStr: '' };
+        // 🛠️ 오류를 해결하기 위해 더 정밀하게 다듬은 날짜 파싱 함수
+        function parseSheetDate(dateVal) {
+            if (!dateVal) return null;
             
-            let actualDate;
-            if (typeof dateVal === 'string' && dateVal.startsWith('Date')) {
-                actualDate = new Date(eval(dateVal));
+            let d;
+            if (typeof dateVal === 'string') {
+                if (dateVal.startsWith('Date')) {
+                    d = new Date(eval(dateVal));
+                } else {
+                    // "2026-07-08", "2026. 7. 8." 등 다양한 텍스트 형태 강제 변환
+                    d = new Date(dateVal.replace(/\./g, '-').replace(/\s/g, ''));
+                }
             } else {
-                actualDate = new Date(dateVal);
+                d = new Date(dateVal);
             }
+            
+            if (isNaN(d.getTime())) return null;
+            return d;
+        }
 
-            if (isNaN(actualDate.getTime())) return { display: '날짜 없음', title: 'XXXX-XX-XX', formattedStr: '' };
-            
-            const year = actualDate.getFullYear();
-            const month = String(actualDate.getMonth() + 1).padStart(2, '0');
-            const day = String(actualDate.getDate()).padStart(2, '0');
-            
-            return { 
-                display: actualDate.toLocaleDateString(), 
+        // 출력용 포맷팅 (YYYY-MM-DD)
+        function getFormattedString(dateObj) {
+            if (!dateObj) return { display: '날짜 없음', title: 'XXXX-XX-XX', key: '' };
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            return {
+                display: `${year}. ${month}. ${day}.`,
                 title: `${year}-${month}-${day}`,
-                formattedStr: `${year}-${month}-${day}`
+                key: `${year}-${month}-${day}`
             };
         }
 
         async function fetchAllData() {
-            // 시트의 첫 번째 탭(gid=0: 데일리 시황)과 두 번째 탭(sheet=Market Intel) 요청
             const urlDaily = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=0&tqx=out:json`;
             const urlIntel = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?sheet=Market+Intel&tqx=out:json`;
 
@@ -166,15 +174,17 @@
 
                 if (rowsDaily && rowsDaily.length > 0) {
                     const lastRow = rowsDaily[rowsDaily.length - 1];
-                    let dateInfo = formatDate(lastRow.c[0] ? lastRow.c[0].v : null);
+                    let dailyDateObj = parseSheetDate(lastRow.c[0] ? lastRow.c[0].v : null);
+                    let dailyInfo = getFormattedString(dailyDateObj);
+                    
                     document.getElementById('stock-market-content').innerText = lastRow.c[1] ? lastRow.c[1].v : '내용 없음';
                     document.getElementById('rate-market-content').innerText = lastRow.c[2] ? lastRow.c[2].v : '내용 없음';
-                    document.getElementById('live-update-date').innerText = `최종 업데이트: ${dateInfo.display}`;
-                    document.getElementById('stock-title').innerText = `📊 주식 (${dateInfo.title})`;
-                    document.getElementById('rate-title').innerText = `💸 금리 (${dateInfo.title})`;
+                    document.getElementById('live-update-date').innerText = `최종 업데이트: ${dailyInfo.display}`;
+                    document.getElementById('stock-title').innerText = `📊 주식 (${dailyInfo.title})`;
+                    document.getElementById('rate-title').innerText = `💸 금리 (${dailyInfo.title})`;
                 }
 
-                // 2. Market Intel 연동 (수동 입력 판단 로직)
+                // 2. Market Intel 연동 (날짜 정밀 매칭 오류 수정 버전)
                 const resIntel = await fetch(urlIntel);
                 const textIntel = await resIntel.text();
                 const jsonIntel = JSON.parse(textIntel.substring(textIntel.indexOf('{'), textIntel.lastIndexOf('}') + 1));
@@ -182,35 +192,29 @@
 
                 const intelContentEl = document.getElementById('intel-market-content');
                 
-                // 데이터가 아예 없는 경우 예외 처리
                 if (!rowsIntel || rowsIntel.length === 0) {
                     intelContentEl.innerHTML = `<div class="no-opinion">금일 의견 없음</div>`;
                     document.getElementById('intel-update-date').innerText = "최종 업데이트: 없음";
                     return;
                 }
 
-                // 가장 최신 행 데이터 추출
                 const lastIntelRow = rowsIntel[rowsIntel.length - 1];
-                let intelDateInfo = formatDate(lastIntelRow.c[0] ? lastIntelRow.c[0].v : null);
+                let intelDateObj = parseSheetDate(lastIntelRow.c[0] ? lastIntelRow.c[0].v : null);
+                let intelInfo = getFormattedString(intelDateObj);
                 let intelReport = lastIntelRow.c[1] ? lastIntelRow.c[1].v : null;
 
-                // 오늘 컴퓨터의 실제 날짜 구하기 (YYYY-MM-DD 포맷)
-                const today = new Date();
-                const tYear = today.getFullYear();
-                const tMonth = String(today.getMonth() + 1).padStart(2, '0');
-                const tDay = String(today.getDate()).padStart(2, '0');
-                const todayStr = `${tYear}-${tMonth}-${tDay}`;
+                // 컴퓨터 실제 '오늘 날짜' 구하기
+                const todayInfo = getFormattedString(new Date());
 
-                // 💡 만약 시트의 최신 데이터 날짜가 '오늘 날짜'와 일치하지 않거나 본문이 비어있다면 금일 의견 없음 출력
-                if (intelDateInfo.formattedStr !== todayStr || !intelReport) {
+                // 💡 [핵심 보완] 유연해진 날짜 스트링 키값 비교 (형식 차이 완전 극복)
+                if (intelInfo.key !== todayInfo.key || !intelReport) {
                     intelContentEl.innerHTML = `<div class="no-opinion">금일 의견 없음</div>`;
-                    document.getElementById('intel-update-date').innerText = `최종 업데이트: ${intelDateInfo.display}`;
-                    document.getElementById('intel-title').innerText = `📋 딥러닝 PDF 분석 보고서 (${intelDateInfo.title})`;
+                    document.getElementById('intel-update-date').innerText = `최종 업데이트: ${intelInfo.display}`;
+                    document.getElementById('intel-title').innerText = `📋 딥러닝 PDF 분석 보고서 (${intelInfo.title})`;
                 } else {
-                    // 오늘 날짜와 일치하면 제미나이 복사본 정상 출력
                     intelContentEl.innerText = intelReport;
-                    document.getElementById('intel-update-date').innerText = `최종 업데이트: ${intelDateInfo.display}`;
-                    document.getElementById('intel-title').innerText = `📋 딥러닝 PDF 분석 보고서 (${intelDateInfo.title})`;
+                    document.getElementById('intel-update-date').innerText = `최종 업데이트: ${intelInfo.display}`;
+                    document.getElementById('intel-title').innerText = `📋 딥러닝 PDF 분석 보고서 (${intelInfo.title})`;
                 }
 
             } catch (error) {
