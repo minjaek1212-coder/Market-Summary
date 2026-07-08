@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daily Market Summary Dashboard</title>
     <style>
-        *, *::before, *::after {
-            box-sizing: border-box;
-        }
+        *, *::before, *::after { box-sizing: border-box; }
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #0f1115;
@@ -16,203 +14,211 @@
             padding: 24px;
             line-height: 1.6;
         }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
+        .container { max-width: 1000px; margin: 0 auto; }
         
-        /* 상단 헤더 */
-        header {
+        /* 📱 상단 내비게이션 메뉴바 스타일 */
+        .navbar {
             display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            border-bottom: 1px solid #1e293b;
-            padding-bottom: 20px;
-            margin-bottom: 32px;
-        }
-        header h1 {
-            color: #ffffff;
-            margin: 0;
-            font-size: 26px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-        .date {
-            color: #94a3b8;
-            font-size: 14px;
-        }
-
-        /* 대시보드 카드 스타일 */
-        .card {
+            gap: 8px;
             background-color: #161b22;
             border: 1px solid #21262d;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-        .card h2 {
-            margin-top: 0;
-            margin-bottom: 16px;
-            font-size: 20px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-        }
-        
-        /* 블럭별 테마 색상 (주식: 블루, 금리: 그린, 외신: 옐로우) */
-        .card.stock { border-top: 4px solid #38bdf8; }
-        .card.stock h2 { color: #38bdf8; }
-        .card.rate { border-top: 4px solid #34d399; }
-        .card.rate h2 { color: #34d399; }
-        .card.reports { border-top: 4px solid #fbbf24; }
-        .card.reports h2 { color: #fbbf24; }
-
-        /* 시황 텍스트 구역 */
-        .market-text {
-            background-color: #0d1117;
-            border: 1px solid #30363d;
             border-radius: 8px;
-            padding: 16px;
-            font-size: 14.5px;
-            white-space: pre-wrap;
-            color: #c9d1d9;
+            padding: 6px;
+            margin-bottom: 24px;
         }
+        .nav-btn {
+            background: none; border: none; color: #8b949e;
+            padding: 10px 20px; font-size: 15px; font-weight: 600;
+            cursor: pointer; border-radius: 6px; transition: all 0.2s ease;
+        }
+        .nav-btn:hover { color: #ffffff; background-color: #21262d; }
+        .nav-btn.active { color: #ffffff; background-color: #38bdf8; }
 
-        /* 로딩 애니메이션 */
-        .loading {
-            color: #8b949e;
-            font-style: italic;
-            animation: blink 1.5s infinite;
+        /* 페이지 세션 제어용 */
+        .page { display: none; }
+        .page.active { display: block; }
+
+        header {
+            display: flex; justify-content: space-between; align-items: flex-end;
+            border-bottom: 1px solid #1e293b; padding-bottom: 20px; margin-bottom: 32px;
         }
+        header h1 { color: #ffffff; margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+        .date { color: #94a3b8; font-size: 14px; }
+
+        .card {
+            background-color: #161b22; border: 1px solid #21262d; border-radius: 12px;
+            padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .card h2 { margin-top: 0; margin-bottom: 16px; font-size: 20px; font-weight: 700; }
+        .card.stock { border-top: 4px solid #38bdf8; } .card.stock h2 { color: #38bdf8; }
+        .card.rate { border-top: 4px solid #34d399; } .card.rate h2 { color: #34d399; }
+        .card.intel { border-top: 4px solid #a855f7; } .card.intel h2 { color: #a855f7; }
+        .card.reports { border-top: 4px solid #fbbf24; } .card.reports h2 { color: #fbbf24; }
+
+        .market-text {
+            background-color: #0d1117; border: 1px solid #30363d; border-radius: 8px;
+            padding: 16px; font-size: 14.5px; white-space: pre-wrap; color: #c9d1d9;
+        }
+        .no-opinion {
+            text-align: center; color: #8b949e; font-style: italic; padding: 40px 0; font-size: 16px;
+        }
+        .loading { color: #8b949e; font-style: italic; animation: blink 1.5s infinite; }
         @keyframes blink { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-
-        /* 외신 링크 버튼 그룹 */
-        .btn-group {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
+        .btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
         .btn-link {
-            background-color: #21262d;
-            color: #c9d1d9;
-            text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            border: 1px solid #30363d;
-            transition: all 0.2s ease;
-        }
-        .btn-link:hover {
-            background-color: #30363d;
-            color: #ffffff;
-            border-color: #8b949e;
+            background-color: #21262d; color: #c9d1d9; text-decoration: none; padding: 10px 20px;
+            border-radius: 6px; font-size: 14px; border: 1px solid #30363d;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <header>
-            <h1>📈 데일리 시황 대시보드</h1>
-            <div class="date" id="live-update-date">최종 업데이트: 로딩 중...</div>
-        </header>
+        <!-- 📱 상단 메뉴바 -->
+        <nav class="navbar">
+            <button class="nav-btn active" onclick="switchPage('daily-page', this)">📊 데일리 시황</button>
+            <button class="nav-btn" onclick="switchPage('intel-page', this)">💡 Market Intel</button>
+        </nav>
 
-        <div class="card stock">
-            <h2 id="stock-title">📊 주식</h2>
-            <div class="market-text" id="stock-market-content">
-                <span class="loading">최신 주식 시황을 불러오는 중입니다...</span>
+        <!-- 1️⃣ 첫 번째 페이지: 데일리 시황 -->
+        <div id="daily-page" class="page active">
+            <header>
+                <h1>📈 데일리 시황 대시보드</h1>
+                <div class="date" id="live-update-date">최종 업데이트: 로딩 중...</div>
+            </header>
+            <div class="card stock">
+                <h2 id="stock-title">📊 주식</h2>
+                <div class="market-text" id="stock-market-content"><span class="loading">로딩 중...</span></div>
+            </div>
+            <div class="card rate">
+                <h2 id="rate-title">💸 금리</h2>
+                <div class="market-text" id="rate-market-content"><span class="loading">로딩 중...</span></div>
+            </div>
+            <div class="card reports">
+                <h2>🌐 외신 링크</h2>
+                <div class="btn-group">
+                    <a href="https://www.bloomberg.com" target="_blank" class="btn-link">Bloomberg 바로가기</a>
+                    <a href="https://www.reuters.com" target="_blank" class="btn-link">Reuters 바로가기</a>
+                </div>
             </div>
         </div>
 
-        <div class="card rate">
-            <h2 id="rate-title">💸 금리</h2>
-            <div class="market-text" id="rate-market-content">
-                <span class="loading">최신 금리 뉴스 및 채권 시황을 분석 중입니다...</span>
+        <!-- 2️⃣ 두 번째 페이지: Market Intel (수동 복사-붙여넣기 연동형) -->
+        <div id="intel-page" class="page">
+            <header>
+                <h1>💡 Market Intel 심층 분석</h1>
+                <div class="date" id="intel-update-date">최종 업데이트: 로딩 중...</div>
+            </header>
+            <div class="card intel">
+                <h2 id="intel-title">📋 딥러닝 PDF 분석 보고서</h2>
+                <div class="market-text" id="intel-market-content">
+                    <span class="loading">최신 인텔리전스 보고서를 조회 중입니다...</span>
+                </div>
             </div>
         </div>
-
-        <div class="card reports">
-            <h2>🌐 외신 링크</h2>
-            <div class="btn-group">
-                <a href="https://www.bloomberg.com" target="_blank" class="btn-link">Bloomberg 바로가기</a>
-                <a href="https://www.reuters.com" target="_blank" class="btn-link">Reuters 바로가기</a>
-            </div>
-        </div>
-        
     </div>
 
     <script>
-        async function fetchLatestMarketData() {
-            const sheetId = '1SBD-To57_OOvAnB3a4vmN9fURD0wZgIR_hXaoIZPLpc';
-            const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+        function switchPage(pageId, btn) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        const sheetId = '1SBD-To57_OOvAnB3a4vmN9fURD0wZgIR_hXaoIZPLpc';
+
+        // 날짜 변환 및 포맷팅 보조 함수
+        function formatDate(dateVal) {
+            if (!dateVal) return { display: '날짜 없음', title: 'XXXX-XX-XX', formattedStr: '' };
+            
+            let actualDate;
+            if (typeof dateVal === 'string' && dateVal.startsWith('Date')) {
+                actualDate = new Date(eval(dateVal));
+            } else {
+                actualDate = new Date(dateVal);
+            }
+
+            if (isNaN(actualDate.getTime())) return { display: '날짜 없음', title: 'XXXX-XX-XX', formattedStr: '' };
+            
+            const year = actualDate.getFullYear();
+            const month = String(actualDate.getMonth() + 1).padStart(2, '0');
+            const day = String(actualDate.getDate()).padStart(2, '0');
+            
+            return { 
+                display: actualDate.toLocaleDateString(), 
+                title: `${year}-${month}-${day}`,
+                formattedStr: `${year}-${month}-${day}`
+            };
+        }
+
+        async function fetchAllData() {
+            // 시트의 첫 번째 탭(gid=0: 데일리 시황)과 두 번째 탭(sheet=Market Intel) 요청
+            const urlDaily = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=0&tqx=out:json`;
+            const urlIntel = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?sheet=Market+Intel&tqx=out:json`;
 
             try {
-                const response = await fetch(url);
-                const text = await response.text();
+                // 1. 데일리 시황 연동
+                const resDaily = await fetch(urlDaily);
+                const textDaily = await resDaily.text();
+                const jsonDaily = JSON.parse(textDaily.substring(textDaily.indexOf('{'), textDaily.lastIndexOf('}') + 1));
+                const rowsDaily = jsonDaily.table.rows;
+
+                if (rowsDaily && rowsDaily.length > 0) {
+                    const lastRow = rowsDaily[rowsDaily.length - 1];
+                    let dateInfo = formatDate(lastRow.c[0] ? lastRow.c[0].v : null);
+                    document.getElementById('stock-market-content').innerText = lastRow.c[1] ? lastRow.c[1].v : '내용 없음';
+                    document.getElementById('rate-market-content').innerText = lastRow.c[2] ? lastRow.c[2].v : '내용 없음';
+                    document.getElementById('live-update-date').innerText = `최종 업데이트: ${dateInfo.display}`;
+                    document.getElementById('stock-title').innerText = `📊 주식 (${dateInfo.title})`;
+                    document.getElementById('rate-title').innerText = `💸 금리 (${dateInfo.title})`;
+                }
+
+                // 2. Market Intel 연동 (수동 입력 판단 로직)
+                const resIntel = await fetch(urlIntel);
+                const textIntel = await resIntel.text();
+                const jsonIntel = JSON.parse(textIntel.substring(textIntel.indexOf('{'), textIntel.lastIndexOf('}') + 1));
+                const rowsIntel = jsonIntel.table.rows;
+
+                const intelContentEl = document.getElementById('intel-market-content');
                 
-                const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
-                const jsonData = JSON.parse(jsonString);
-                
-                const rows = jsonData.table.rows;
-                if (!rows || rows.length === 0) {
-                    document.getElementById('stock-market-content').innerText = "시트 안에 데이터가 존재하지 않습니다.";
-                    document.getElementById('rate-market-content').innerText = "시트 안에 데이터가 존재하지 않습니다.";
+                // 데이터가 아예 없는 경우 예외 처리
+                if (!rowsIntel || rowsIntel.length === 0) {
+                    intelContentEl.innerHTML = `<div class="no-opinion">금일 의견 없음</div>`;
+                    document.getElementById('intel-update-date').innerText = "최종 업데이트: 없음";
                     return;
                 }
 
-                // 가장 마지막 행 데이터 추출
-                const lastRow = rows[rows.length - 1];
-                
-                // 데이터 매칭 (0번째: 날짜, 1번째: 주식, 2번째: 금리)
-                let dateVal = lastRow.c[0] ? lastRow.c[0].v : null;
-                let stockVal = lastRow.c[1] ? lastRow.c[1].v : '주식 시황 내용 없음';
-                let rateVal = lastRow.c[2] ? lastRow.c[2].v : '금리 시황 내용 없음';
+                // 가장 최신 행 데이터 추출
+                const lastIntelRow = rowsIntel[rowsIntel.length - 1];
+                let intelDateInfo = formatDate(lastIntelRow.c[0] ? lastIntelRow.c[0].v : null);
+                let intelReport = lastIntelRow.c[1] ? lastIntelRow.c[1].v : null;
 
-                let displayDate = '날짜 없음';
-                let formattedTitleDate = 'XXXX-XX-XX';
+                // 오늘 컴퓨터의 실제 날짜 구하기 (YYYY-MM-DD 포맷)
+                const today = new Date();
+                const tYear = today.getFullYear();
+                const tMonth = String(today.getMonth() + 1).padStart(2, '0');
+                const tDay = String(today.getDate()).padStart(2, '0');
+                const todayStr = `${tYear}-${tMonth}-${tDay}`;
 
-                if (dateVal) {
-                    let actualDate;
-                    // 구글 시트 내부의 Date 객체 포맷팅 대응
-                    if (typeof dateVal === 'string' && dateVal.startsWith('Date')) {
-                        actualDate = new Date(eval(dateVal));
-                    } else {
-                        actualDate = new Date(dateVal);
-                    }
-
-                    if (!isNaN(actualDate.getTime())) {
-                        // (1) 우측 상단용 로컬 날짜 문자열 정제 (예: "2026. 7. 8.")
-                        displayDate = actualDate.toLocaleDateString();
-
-                        // (2) 블럭 제목용 YYYY-MM-DD 포맷 수동 변환
-                        const year = actualDate.getFullYear();
-                        const month = String(actualDate.getMonth() + 1).padStart(2, '0');
-                        const day = String(actualDate.getDate()).padStart(2, '0');
-                        formattedTitleDate = `${year}-${month}-${day}`;
-                    }
+                // 💡 만약 시트의 최신 데이터 날짜가 '오늘 날짜'와 일치하지 않거나 본문이 비어있다면 금일 의견 없음 출력
+                if (intelDateInfo.formattedStr !== todayStr || !intelReport) {
+                    intelContentEl.innerHTML = `<div class="no-opinion">금일 의견 없음</div>`;
+                    document.getElementById('intel-update-date').innerText = `최종 업데이트: ${intelDateInfo.display}`;
+                    document.getElementById('intel-title').innerText = `📋 딥러닝 PDF 분석 보고서 (${intelDateInfo.title})`;
+                } else {
+                    // 오늘 날짜와 일치하면 제미나이 복사본 정상 출력
+                    intelContentEl.innerText = intelReport;
+                    document.getElementById('intel-update-date').innerText = `최종 업데이트: ${intelDateInfo.display}`;
+                    document.getElementById('intel-title').innerText = `📋 딥러닝 PDF 분석 보고서 (${intelDateInfo.title})`;
                 }
 
-                // 화면 텍스트 최종 업데이트
-                document.getElementById('stock-market-content').innerText = stockVal;
-                document.getElementById('rate-market-content').innerText = rateVal;
-                
-                // (1) 우측 상단 헤더 날짜 업데이트
-                document.getElementById('live-update-date').innerText = `최종 업데이트: ${displayDate}`;
-                
-                // (2) 제목 뒤에 (YYYY-MM-DD) 붙여주기
-                document.getElementById('stock-title').innerText = `📊 주식 (${formattedTitleDate})`;
-                document.getElementById('rate-title').innerText = `💸 금리 (${formattedTitleDate})`;
-
             } catch (error) {
-                console.error("Error fetching sheet data:", error);
-                document.getElementById('stock-market-content').innerText = "데이터를 불러오는 도중 오류가 발생했습니다.";
-                document.getElementById('rate-market-content').innerText = "데이터를 불러오는 도중 오류가 발생했습니다.";
+                console.error("데이터 로딩 중 에러 발생:", error);
             }
         }
 
-        window.onload = fetchLatestMarketData;
+        window.onload = fetchAllData;
     </script>
 </body>
 </html>
