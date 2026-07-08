@@ -14,38 +14,66 @@
             padding: 24px;
             line-height: 1.6;
         }
-        .container { max-width: 1000px; margin: 0 auto; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        
+        /* 상단 헤더 구역 */
         header {
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
             border-bottom: 1px solid #1e293b;
-            padding-bottom: 20px;
-            margin-bottom: 32px;
+            padding-bottom: 15px;
+            margin-bottom: 24px;
         }
-        header h1 { color: #ffffff; margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
-        .date { color: #94a3b8; font-size: 14px; }
+        header h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+        .date { color: #94a3b8; font-size: 13px; }
+
+        /* 📈 실시간 금융 지표 위젯 레이아웃 (가로 배열) */
+        .market-ticker-grid {
+            display: block;
+            width: 100%;
+            margin-bottom: 24px;
+        }
+        .ticker-row {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+            border-spacing: 12px 0;
+            margin: 0 -12px;
+        }
+        .ticker-cell {
+            display: table-cell;
+            vertical-align: top;
+            background-color: #161b22;
+            border: 1px solid #21262d;
+            border-radius: 10px;
+            overflow: hidden;
+            height: 220px; /* 위젯 높이에 맞춤 */
+        }
+
+        /* 하단 대시보드 콘텐츠 카드 */
         .card {
             background-color: #161b22;
             border: 1px solid #21262d;
             border-radius: 12px;
             padding: 24px;
             margin-bottom: 24px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
-        .card h2 { margin-top: 0; margin-bottom: 16px; font-size: 20px; font-weight: 700; display: flex; align-items: center; }
+        .card h2 { margin-top: 0; margin-bottom: 16px; font-size: 18px; font-weight: 700; }
         .card.stock { border-top: 4px solid #38bdf8; }
         .card.stock h2 { color: #38bdf8; }
         .card.rate { border-top: 4px solid #34d399; }
         .card.rate h2 { color: #34d399; }
         .card.reports { border-top: 4px solid #fbbf24; }
         .card.reports h2 { color: #fbbf24; }
+        
         .market-text {
             background-color: #0d1117;
             border: 1px solid #30363d;
             border-radius: 8px;
             padding: 16px;
-            font-size: 14.5px;
+            font-size: 14px;
             white-space: pre-wrap;
             color: #c9d1d9;
         }
@@ -53,8 +81,8 @@
         @keyframes blink { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
         .btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
         .btn-link {
-            background-color: #21262d; color: #c9d1d9; text-decoration: none; padding: 10px 20px;
-            border-radius: 6px; font-size: 14px; font-weight: 500; border: 1px solid #30363d; transition: all 0.2s ease;
+            background-color: #21262d; color: #c9d1d9; text-decoration: none; padding: 10px 18px;
+            border-radius: 6px; font-size: 13px; font-weight: 500; border: 1px solid #30363d; transition: all 0.2s ease;
         }
         .btn-link:hover { background-color: #30363d; color: #ffffff; border-color: #8b949e; }
     </style>
@@ -67,15 +95,97 @@
             <div class="date" id="live-update-date">최종 업데이트: 로딩 중...</div>
         </header>
 
+        <div class="market-ticker-grid">
+            <div class="ticker-row">
+                
+                <div class="ticker-cell">
+                    <div class="tradingview-widget-container" style="height:100%;width:100%">
+                        <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
+                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                        {
+                        "symbol": "KRX:KOSPI",
+                        "width": "100%",
+                        "height": "100%",
+                        "locale": "ko",
+                        "dateRange": "1M",
+                        "colorTheme": "dark",
+                        "isTransparent": true,
+                        "autosize": true,
+                        "largeChartUrl": ""
+                        }
+                        </script>
+                    </div>
+                </div>
+
+                <div class="ticker-cell">
+                    <div class="tradingview-widget-container" style="height:100%;width:100%">
+                        <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
+                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                        {
+                        "symbol": "KRX:101QA000",
+                        "width": "100%",
+                        "height": "100%",
+                        "locale": "ko",
+                        "dateRange": "1M",
+                        "colorTheme": "dark",
+                        "isTransparent": true,
+                        "autosize": true,
+                        "largeChartUrl": ""
+                        }
+                        </script>
+                    </div>
+                </div>
+
+                <div class="ticker-cell">
+                    <div class="tradingview-widget-container" style="height:100%;width:100%">
+                        <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
+                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                        {
+                        "symbol": "TVC:US10Y",
+                        "width": "100%",
+                        "height": "100%",
+                        "locale": "ko",
+                        "dateRange": "1M",
+                        "colorTheme": "dark",
+                        "isTransparent": true,
+                        "autosize": true,
+                        "largeChartUrl": ""
+                        }
+                        </script>
+                    </div>
+                </div>
+
+                <div class="ticker-cell">
+                    <div class="tradingview-widget-container" style="height:100%;width:100%">
+                        <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
+                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                        {
+                        "symbol": "TVC:KR10Y",
+                        "width": "100%",
+                        "height": "100%",
+                        "locale": "ko",
+                        "dateRange": "1M",
+                        "colorTheme": "dark",
+                        "isTransparent": true,
+                        "autosize": true,
+                        "largeChartUrl": ""
+                        }
+                        </script>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
         <div class="card stock">
-            <h2>📊 주식</h2>
+            <h2>📊 주식 시황</h2>
             <div class="market-text" id="stock-market-content">
                 <span class="loading">최신 주식 시황을 불러오는 중입니다...</span>
             </div>
         </div>
 
         <div class="card rate">
-            <h2>💸 금리</h2>
+            <h2>💸 금리 및 채권 시황</h2>
             <div class="market-text" id="rate-market-content">
                 <span class="loading">최신 금리 뉴스 및 채권 시황을 분석 중입니다...</span>
             </div>
@@ -109,10 +219,8 @@
                     return;
                 }
 
-                // 가장 마지막 행 데이터 추출
                 const lastRow = rows[rows.length - 1];
                 
-                // 데이터 매칭 (0번째: 날짜, 1번째: 주식, 2번째: 금리)
                 let dateVal = lastRow.c[0] ? lastRow.c[0].v : '날짜 없음';
                 let stockVal = lastRow.c[1] ? lastRow.c[1].v : '주식 시황 내용 없음';
                 let rateVal = lastRow.c[2] ? lastRow.c[2].v : '금리 시황 내용 없음';
@@ -121,7 +229,6 @@
                     dateVal = new Date(eval(dateVal)).toLocaleDateString();
                 }
 
-                // 화면에 뿌려주기
                 document.getElementById('stock-market-content').innerText = stockVal;
                 document.getElementById('rate-market-content').innerText = rateVal;
                 document.getElementById('live-update-date').innerText = `최종 업데이트: ${dateVal}`;
