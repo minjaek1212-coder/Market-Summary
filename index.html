@@ -23,32 +23,20 @@
             align-items: flex-end;
             border-bottom: 1px solid #1e293b;
             padding-bottom: 15px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
         header h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
         .date { color: #94a3b8; font-size: 13px; }
 
-        /* 📈 실시간 금융 지표 위젯 레이아웃 (가로 배열) */
-        .market-ticker-grid {
-            display: block;
+        /* 📈 실시간 금융 지표 위젯 레이아웃 (에러 우회 및 최적화 버전) */
+        .market-ticker-container {
             width: 100%;
             margin-bottom: 24px;
-        }
-        .ticker-row {
-            display: table;
-            width: 100%;
-            table-layout: fixed;
-            border-spacing: 12px 0;
-            margin: 0 -12px;
-        }
-        .ticker-cell {
-            display: table-cell;
-            vertical-align: top;
             background-color: #161b22;
             border: 1px solid #21262d;
             border-radius: 10px;
+            padding: 10px 4px;
             overflow: hidden;
-            height: 220px; /* 위젯 높이에 맞춤 */
         }
 
         /* 하단 대시보드 콘텐츠 카드 */
@@ -95,85 +83,36 @@
             <div class="date" id="live-update-date">최종 업데이트: 로딩 중...</div>
         </header>
 
-        <div class="market-ticker-grid">
-            <div class="ticker-row">
-                
-                <div class="ticker-cell">
-                    <div class="tradingview-widget-container" style="height:100%;width:100%">
-                        <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
-                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
-                        {
-                        "symbol": "KRX:KOSPI",
-                        "width": "100%",
-                        "height": "100%",
-                        "locale": "ko",
-                        "dateRange": "1M",
-                        "colorTheme": "dark",
-                        "isTransparent": true,
-                        "autosize": true,
-                        "largeChartUrl": ""
-                        }
-                        </script>
-                    </div>
-                </div>
-
-                <div class="ticker-cell">
-                    <div class="tradingview-widget-container" style="height:100%;width:100%">
-                        <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
-                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
-                        {
-                        "symbol": "KRX:101QA000",
-                        "width": "100%",
-                        "height": "100%",
-                        "locale": "ko",
-                        "dateRange": "1M",
-                        "colorTheme": "dark",
-                        "isTransparent": true,
-                        "autosize": true,
-                        "largeChartUrl": ""
-                        }
-                        </script>
-                    </div>
-                </div>
-
-                <div class="ticker-cell">
-                    <div class="tradingview-widget-container" style="height:100%;width:100%">
-                        <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
-                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
-                        {
-                        "symbol": "TVC:US10Y",
-                        "width": "100%",
-                        "height": "100%",
-                        "locale": "ko",
-                        "dateRange": "1M",
-                        "colorTheme": "dark",
-                        "isTransparent": true,
-                        "autosize": true,
-                        "largeChartUrl": ""
-                        }
-                        </script>
-                    </div>
-                </div>
-
-                <div class="ticker-cell">
-                    <div class="tradingview-widget-container" style="height:100%;width:100%">
-                        <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
-                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
-                        {
-                        "symbol": "TVC:KR10Y",
-                        "width": "100%",
-                        "height": "100%",
-                        "locale": "ko",
-                        "dateRange": "1M",
-                        "colorTheme": "dark",
-                        "isTransparent": true,
-                        "autosize": true,
-                        "largeChartUrl": ""
-                        }
-                        </script>
-                    </div>
-                </div>
-
+        <div class="market-ticker-container">
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+                {
+                "symbols": [
+                    {
+                    "proName": "AMEX:EWY",
+                    "title": "코스피 (MSCI KR)"
+                    },
+                    {
+                    "proName": "KRX:101M000",
+                    "title": "코스피200 선물 근월물"
+                    },
+                    {
+                    "proName": "TVC:US10Y",
+                    "title": "미국채 10년 금리"
+                    },
+                    {
+                    "proName": "ECONOMICS:KR10Y",
+                    "title": "한국채 10년 금리"
+                    }
+                ],
+                "showSymbolLogo": false,
+                "colorTheme": "dark",
+                "isTransparent": true,
+                "displayMode": "adaptive",
+                "locale": "ko"
+                }
+                </script>
             </div>
         </div>
 
