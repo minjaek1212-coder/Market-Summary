@@ -178,34 +178,42 @@
             return rawText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         }
 
-        // 🧠 Market Intel 심층 분석 전용 특수 파서 (정규식 형광펜 싹 걷어내고 지정 소제목만 하이라이팅)
-        function renderIntelReportToHTML(rawText) {
-            if (!rawText) return `<div class="no-opinion">금일 의견 없음</div>`;
+// 🧠 Market Intel 심층 분석 전용 정밀 파서 (소제목 오인 현상 완벽 수정 버전)
+function renderIntelReportToHTML(rawText) {
+    if (!rawText) return `<div class="no-opinion">금일 의견 없음</div>`;
+    
+    const lines = rawText.split('\n');
+    let htmlOutput = "";
+
+    lines.forEach(line => {
+        let trimmed = line.trim();
+        if (!trimmed) return;
+
+        // 본문 내용 유출 오인 방지를 위해, 줄의 '시작 패턴'을 정확하게 매칭하거나 후처리 GEM의 명확한 타이틀만 필터링
+        if (trimmed.startsWith('###') || 
+            trimmed.startsWith('1.') || trimmed.startsWith('2.') || trimmed.startsWith('3.') || trimmed.startsWith('4.') || 
+            trimmed.startsWith('**###') || trimmed.startsWith('**1.') || trimmed.startsWith('**2.') || trimmed.startsWith('**3.') || trimmed.startsWith('**4.') ||
+            trimmed === '주요 매크로 이벤트 및 시장 영향' || 
+            trimmed === '미국 주식시장 브리핑 (US Market Brief)' || 
+            trimmed === 'TMT(기술/미디어/통신) 섹터 전문가 의견' || 
+            trimmed === 'US MKT INTEL VIEW & MONETIZATION MENU' ||
+            trimmed === '**주요 매크로 이벤트 및 시장 영향**' || 
+            trimmed === '**미국 주식시장 브리핑 (US Market Brief)**' || 
+            trimmed === '**TMT(기술/미디어/통신) 섹터 전문가 의견**' || 
+            trimmed === '**US MKT INTEL VIEW & MONETIZATION MENU**') {
             
-            const lines = rawText.split('\n');
-            let htmlOutput = "";
-
-            lines.forEach(line => {
-                let trimmed = line.trim();
-                if (!trimmed) return;
-
-                // 원하셨던 4대 핵심 소제목 키워드를 만나면 굵고 깔끔한 인디케이터 서식 타이틀로 렌더링
-                if (trimmed.startsWith('###') || trimmed.startsWith('1.') || trimmed.startsWith('2.') || trimmed.startsWith('3.') || trimmed.startsWith('4.') || 
-                    trimmed.includes('주요 매크로 이벤트') || trimmed.includes('미국 주식시장 브리핑') || trimmed.includes('US Market Brief') || 
-                    trimmed.includes('TMT') || trimmed.includes('전문가 의견') || trimmed.includes('US MKT INTEL VIEW') || trimmed.includes('MONETIZATION MENU')) {
-                    
-                    let cleanTitle = trimmed.replace(/###/g, '').replace(/\*\*/g, '').trim();
-                    htmlOutput += `<span class="intel-section-title">${cleanTitle}</span>`;
-                } 
-                else {
-                    // 노란색 형광펜 유발 정규식을 통째로 지우고 본문의 단순 볼드 표시기만 <strong> 태그로 입혀 내보냄
-                    let formattedLine = trimmed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                    htmlOutput += `<p class="intel-paragraph">${formattedLine}</p>`;
-                }
-            });
-
-            return htmlOutput;
+            let cleanTitle = trimmed.replace(/###/g, '').replace(/\*\*/g, '').trim();
+            htmlOutput += `<span class="intel-section-title">${cleanTitle}</span>`;
+        } 
+        else {
+            // 일반 본문은 <strong> 태그만 해석하여 안전하게 출력
+            let formattedLine = trimmed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            htmlOutput += `<p class="intel-paragraph">${formattedLine}</p>`;
         }
+    });
+
+    return htmlOutput;
+}
 
         async function fetchAllData() {
             const urlDaily = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=0&tqx=out:json`;
