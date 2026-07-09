@@ -253,4 +253,24 @@
 
                 rowsIntel.forEach(row => {
                     if (row.c[0] && row.c[0].v && !firstValidDateInfo) {
-                        firstValidDateInfo = parseAndFormatDate(row.
+                        firstValidDateInfo = parseAndFormatDate(row.c[0].v);
+                    }
+                    if (row.c[1] && row.c[1].v) {
+                        combinedReport += row.c[1].v + "\n";
+                    }
+                });
+
+                intelContentEl.innerHTML = renderIntelReportToHTML(combinedReport);
+                
+                let intelDisplayDate = firstValidDateInfo ? firstValidDateInfo.display : '날짜 없음';
+                document.getElementById('intel-update-date').innerText = `최종 업데이트: ${intelDisplayDate}`;
+
+            } catch (error) {
+                console.error("데이터 통합 로딩 에러:", error);
+            }
+        }
+
+        window.onload = fetchAllData;
+    </script>
+</body>
+</html>
