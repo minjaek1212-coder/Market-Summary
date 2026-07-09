@@ -66,7 +66,6 @@
             word-break: break-all;
         }
         
-        /* 💡 텍스트 내 마크다운 볼드(**) 기호를 진짜 브라우저용 볼드로 치환하는 핵심 스타일 */
         .market-text strong {
             color: #ffffff;
             font-weight: 700;
@@ -74,18 +73,14 @@
         
         /* Market Intel 실시간 파싱용 서식 스타일 */
         .intel-section-title {
-            font-size: 18px; font-weight: 700; color: #f8fafc;
-            margin-top: 24px; margin-bottom: 12px; padding-left: 8px;
+            font-size: 18px; font-weight: 700; color: #38bdf8;
+            margin-top: 28px; margin-bottom: 14px; padding-left: 10px;
             border-left: 4px solid #38bdf8; display: block;
         }
         .intel-section-title:first-child { margin-top: 0; }
         
         .intel-paragraph {
-            margin: 0 0 12px 0; padding-left: 4px; text-align: justify;
-        }
-        .intel-highlight {
-            color: #ffda6a; font-weight: 700; background-color: rgba(255, 218, 106, 0.08);
-            padding: 1px 4px; border-radius: 4px;
+            margin: 0 0 12px 0; padding-left: 4px; text-align: justify; color: #c9d1d9;
         }
 
         .no-opinion { text-align: center; color: #8b949e; font-style: italic; padding: 40px 0; font-size: 16px; }
@@ -96,13 +91,11 @@
 <body>
 
     <div class="container">
-        <!-- 📱 상단 메뉴바 -->
         <nav class="navbar">
             <button class="nav-btn active" onclick="switchPage('daily-page', this)">📊 데일리 시황</button>
             <button class="nav-btn" onclick="switchPage('intel-page', this)">💡 Market Intel</button>
         </nav>
 
-        <!-- 1️⃣ 첫 번째 페이지: 데일리 시황 -->
         <div id="daily-page" class="page active">
             <header>
                 <div class="header-main">
@@ -114,26 +107,22 @@
                 </div>
             </header>
             
-            <!-- ① 주식 블록 (B열) -->
             <div class="card stock">
                 <h2>📊 주식</h2>
                 <div class="market-text" id="stock-market-content"><span class="loading">로딩 중...</span></div>
             </div>
             
-            <!-- ② 외환 블록 (D열) -->
             <div class="card fx">
                 <h2>💵 환율</h2>
                 <div class="market-text" id="fx-market-content"><span class="loading">로딩 중...</span></div>
             </div>
 
-            <!-- ③ MACRO 블록 (C열) -->
             <div class="card macro">
                 <h2>💸 NEWS</h2>
                 <div class="market-text" id="macro-market-content"><span class="loading">로딩 중...</span></div>
             </div>
         </div>
 
-        <!-- 2️⃣ 두 번째 페이지: Market Intel -->
         <div id="intel-page" class="page">
             <header>
                 <div class="header-main">
@@ -184,14 +173,12 @@
             return { display: `${year}. ${month}. ${day}.`, title: `${year}-${month}-${day}` };
         }
 
-        // 🛠️ 데일리 시황(주식, 외환, 매크로)용 기본 마크다운 볼드 치환 함수 (신설)
         function convertMarkdownToHTML(rawText) {
             if (!rawText) return '내용 없음';
-            // **텍스트** 패턴을 찾아 브라우저 표준 볼드 태그인 <strong>텍스트</strong>로 전면 치환
             return rawText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         }
 
-        // Market Intel 심층 분석 전용 특수 대형 파서
+        // 🧠 Market Intel 심층 분석 전용 특수 파서 (정규식 형광펜 싹 걷어내고 지정 소제목만 하이라이팅)
         function renderIntelReportToHTML(rawText) {
             if (!rawText) return `<div class="no-opinion">금일 의견 없음</div>`;
             
@@ -202,15 +189,17 @@
                 let trimmed = line.trim();
                 if (!trimmed) return;
 
+                // 원하셨던 4대 핵심 소제목 키워드를 만나면 굵고 깔끔한 인디케이터 서식 타이틀로 렌더링
                 if (trimmed.startsWith('###') || trimmed.startsWith('1.') || trimmed.startsWith('2.') || trimmed.startsWith('3.') || trimmed.startsWith('4.') || 
-                    trimmed.includes('주요 매크로 이벤트') || trimmed.includes('미국 주식시장 브리핑') || trimmed.includes('TMT') || trimmed.includes('MONETIZATION')) {
+                    trimmed.includes('주요 매크로 이벤트') || trimmed.includes('미국 주식시장 브리핑') || trimmed.includes('US Market Brief') || 
+                    trimmed.includes('TMT') || trimmed.includes('전문가 의견') || trimmed.includes('US MKT INTEL VIEW') || trimmed.includes('MONETIZATION MENU')) {
                     
-                    let cleanTitle = trimmed.replace(/###/g, '').trim();
+                    let cleanTitle = trimmed.replace(/###/g, '').replace(/\*\*/g, '').trim();
                     htmlOutput += `<span class="intel-section-title">${cleanTitle}</span>`;
                 } 
                 else {
-                    let formattedLine = trimmed.replace(/\*\*(.*?)\*\*/g, '<span class="intel-highlight">$1</span>');
-                    formattedLine = formattedLine.replace(/(-?\d+(\.\d+)?\s?%|-?\d+\s?bp|\$\d+(\.\d+)?)/g, '<span class="intel-highlight">$1</span>');
+                    // 노란색 형광펜 유발 정규식을 통째로 지우고 본문의 단순 볼드 표시기만 <strong> 태그로 입혀 내보냄
+                    let formattedLine = trimmed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                     htmlOutput += `<p class="intel-paragraph">${formattedLine}</p>`;
                 }
             });
@@ -238,7 +227,6 @@
                     let rawMacro = lastRow.c[2] ? lastRow.c[2].v : '내용 없음';
                     let rawFx = lastRow.c[3] ? lastRow.c[3].v : '내용 없음';
 
-                    // 💡 [핵심 보완] innerText 대신 innerHTML을 사용하여 볼드 태그가 진짜 작동하도록 심어줌
                     document.getElementById('stock-market-content').innerHTML = convertMarkdownToHTML(rawStock);
                     document.getElementById('macro-market-content').innerHTML = convertMarkdownToHTML(rawMacro);
                     document.getElementById('fx-market-content').innerHTML = convertMarkdownToHTML(rawFx);
@@ -265,24 +253,4 @@
 
                 rowsIntel.forEach(row => {
                     if (row.c[0] && row.c[0].v && !firstValidDateInfo) {
-                        firstValidDateInfo = parseAndFormatDate(row.c[0].v);
-                    }
-                    if (row.c[1] && row.c[1].v) {
-                        combinedReport += row.c[1].v + "\n";
-                    }
-                });
-
-                intelContentEl.innerHTML = renderIntelReportToHTML(combinedReport);
-                
-                let intelDisplayDate = firstValidDateInfo ? firstValidDateInfo.display : '날짜 없음';
-                document.getElementById('intel-update-date').innerText = `최종 업데이트: ${intelDisplayDate}`;
-
-            } catch (error) {
-                console.error("데이터 통합 로딩 에러:", error);
-            }
-        }
-
-        window.onload = fetchAllData;
-    </script>
-</body>
-</html>
+                        firstValidDateInfo = parseAndFormatDate(row.
