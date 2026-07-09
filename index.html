@@ -59,9 +59,17 @@
         }
         .card h2 { margin-top: 0; margin-bottom: 20px; font-size: 22px; font-weight: 700; border-bottom: 1px solid #30363d; padding-bottom: 10px; color: #38bdf8; }
 
+        /* 📑 시황 리포트 텍스트 박스 */
         .market-text {
             background-color: #0d1117; border: 1px solid #30363d; border-radius: 8px;
             padding: 24px; font-size: 15px; color: #c9d1d9; white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        /* 💡 텍스트 내 마크다운 볼드(**) 기호를 진짜 브라우저용 볼드로 치환하는 핵심 스타일 */
+        .market-text strong {
+            color: #ffffff;
+            font-weight: 700;
         }
         
         /* Market Intel 실시간 파싱용 서식 스타일 */
@@ -73,7 +81,7 @@
         .intel-section-title:first-child { margin-top: 0; }
         
         .intel-paragraph {
-            margin: 0 0 12px 0; padding-left: 4px; text-align: justify; word-break: break-all;
+            margin: 0 0 12px 0; padding-left: 4px; text-align: justify;
         }
         .intel-highlight {
             color: #ffda6a; font-weight: 700; background-color: rgba(255, 218, 106, 0.08);
@@ -94,7 +102,7 @@
             <button class="nav-btn" onclick="switchPage('intel-page', this)">💡 Market Intel</button>
         </nav>
 
-        <!-- 1️⃣ 첫 번째 페이지: 데일리 시황 (순서 조정 완료) -->
+        <!-- 1️⃣ 첫 번째 페이지: 데일리 시황 -->
         <div id="daily-page" class="page active">
             <header>
                 <div class="header-main">
@@ -112,13 +120,13 @@
                 <div class="market-text" id="stock-market-content"><span class="loading">로딩 중...</span></div>
             </div>
             
-            <!-- ② 외환 블록 (D열 - 순서 상향 배치 🚀) -->
+            <!-- ② 외환 블록 (D열) -->
             <div class="card fx">
                 <h2>💵 외환</h2>
                 <div class="market-text" id="fx-market-content"><span class="loading">로딩 중...</span></div>
             </div>
 
-            <!-- ③ MACRO 블록 (C열 - 하향 배치) -->
+            <!-- ③ MACRO 블록 (C열) -->
             <div class="card macro">
                 <h2>💸 MACRO</h2>
                 <div class="market-text" id="macro-market-content"><span class="loading">로딩 중...</span></div>
@@ -176,6 +184,14 @@
             return { display: `${year}. ${month}. ${day}.`, title: `${year}-${month}-${day}` };
         }
 
+        // 🛠️ 데일리 시황(주식, 외환, 매크로)용 기본 마크다운 볼드 치환 함수 (신설)
+        function convertMarkdownToHTML(rawText) {
+            if (!rawText) return '내용 없음';
+            // **텍스트** 패턴을 찾아 브라우저 표준 볼드 태그인 <strong>텍스트</strong>로 전면 치환
+            return rawText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        }
+
+        // Market Intel 심층 분석 전용 특수 대형 파서
         function renderIntelReportToHTML(rawText) {
             if (!rawText) return `<div class="no-opinion">금일 의견 없음</div>`;
             
@@ -207,7 +223,7 @@
             const urlIntel = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=1681828616&tqx=out:json`;
 
             try {
-                // 1. 데일리 시황 파트 연동 (날짜 표시 생략화 반영)
+                // 1. 데일리 시황 파트 연동
                 const resDaily = await fetch(urlDaily);
                 const textDaily = await resDaily.text();
                 const jsonDaily = JSON.parse(textDaily.substring(textDaily.indexOf('{'), textDaily.lastIndexOf('}') + 1));
@@ -218,9 +234,14 @@
                     let dailyDateInfo = parseAndFormatDate(lastRow.c[0] ? lastRow.c[0].v : null);
                     let displayDate = dailyDateInfo ? dailyDateInfo.display : '날짜 없음';
                     
-                    document.getElementById('stock-market-content').innerText = lastRow.c[1] ? lastRow.c[1].v : '내용 없음';
-                    document.getElementById('macro-market-content').innerText = lastRow.c[2] ? lastRow.c[2].v : '내용 없음';
-                    document.getElementById('fx-market-content').innerText = lastRow.c[3] ? lastRow.c[3].v : '내용 없음';
+                    let rawStock = lastRow.c[1] ? lastRow.c[1].v : '내용 없음';
+                    let rawMacro = lastRow.c[2] ? lastRow.c[2].v : '내용 없음';
+                    let rawFx = lastRow.c[3] ? lastRow.c[3].v : '내용 없음';
+
+                    // 💡 [핵심 보완] innerText 대신 innerHTML을 사용하여 볼드 태그가 진짜 작동하도록 심어줌
+                    document.getElementById('stock-market-content').innerHTML = convertMarkdownToHTML(rawStock);
+                    document.getElementById('macro-market-content').innerHTML = convertMarkdownToHTML(rawMacro);
+                    document.getElementById('fx-market-content').innerHTML = convertMarkdownToHTML(rawFx);
                     
                     document.getElementById('live-update-date').innerText = `최종 업데이트: ${displayDate}`;
                 }
