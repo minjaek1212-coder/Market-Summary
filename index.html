@@ -16,7 +16,7 @@
         }
         .container { max-width: 1000px; margin: 0 auto; }
         
-        /* 📱 상단 메뉴바 - 스크롤 시 상단에 고정되도록 고도화 (Sticky) */
+        /* 📱 상단 메뉴바 - 스크롤 시 상단 고정 (Sticky) */
         .navbar {
             display: flex; gap: 8px; background-color: #161b22;
             border: 1px solid #21262d; border-radius: 8px; padding: 6px; 
@@ -37,7 +37,7 @@
         header {
             display: flex; justify-content: space-between; align-items: flex-end;
             border-bottom: 1px solid #1e293b; padding-bottom: 20px; margin-bottom: 32px;
-            margin-top: 12px; /* 상단 메뉴바 고정 시 여백 확보 */
+            margin-top: 12px;
         }
         header h1 { color: #ffffff; margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
         .date { color: #94a3b8; font-size: 14px; }
@@ -47,21 +47,23 @@
             padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
         .card h2 { margin-top: 0; margin-bottom: 20px; font-size: 22px; font-weight: 700; border-bottom: 1px solid #30363d; padding-bottom: 10px; }
+        
+        /* 각 블록별 시그니처 컬러 보더 */
         .card.stock { border-top: 4px solid #38bdf8; } .card.stock h2 { color: #38bdf8; }
-        .card.rate { border-top: 4px solid #34d399; } .card.rate h2 { color: #34d399; }
-        .card.intel { border-top: 4px solid #a855f7; } .card.intel h2 { color: #a855f7; }
+        .card.macro { border-top: 4px solid #a855f7; } .card.macro h2 { color: #a855f7; }
+        .card.fx { border-top: 4px solid #34d399; } .card.fx h2 { color: #34d399; }
+        .card.intel { border-top: 4px solid #ec4899; } .card.intel h2 { color: #ec4899; }
 
-        /* 📑 전문 경제 뉴스 리포트 스타일링 구역 */
         .market-text {
             background-color: #0d1117; border: 1px solid #30363d; border-radius: 8px;
-            padding: 24px; font-size: 15px; color: #c9d1d9;
+            padding: 24px; font-size: 15px; color: #c9d1d9; white-space: pre-wrap;
         }
         
-        /* 실시간 파싱용 서식 스타일 클래스 */
+        /* Market Intel 실시간 파싱용 서식 스타일 */
         .intel-section-title {
             font-size: 18px; font-weight: 700; color: #f8fafc;
             margin-top: 24px; margin-bottom: 12px; padding-left: 8px;
-            border-left: 4px solid #a855f7; display: block;
+            border-left: 4px solid #ec4899; display: block;
         }
         .intel-section-title:first-child { margin-top: 0; }
         
@@ -81,25 +83,35 @@
 <body>
 
     <div class="container">
-        <!-- 📱 상단 메뉴바 (고정형 적용 완료) -->
+        <!-- 📱 상단 메뉴바 -->
         <nav class="navbar">
             <button class="nav-btn active" onclick="switchPage('daily-page', this)">📊 데일리 시황</button>
             <button class="nav-btn" onclick="switchPage('intel-page', this)">💡 Market Intel</button>
         </nav>
 
-        <!-- 1️⃣ 첫 번째 페이지: 데일리 시황 (외신 링크 블록 삭제 완료) -->
+        <!-- 1️⃣ 첫 번째 페이지: 데일리 시황 (MACRO 변경 및 외환 블록 추가) -->
         <div id="daily-page" class="page active">
             <header>
                 <h1>📈 데일리 시황 대시보드</h1>
                 <div class="date" id="live-update-date">최종 업데이트: 로딩 중...</div>
             </header>
+            
+            <!-- 주식 블록 (B열) -->
             <div class="card stock">
                 <h2 id="stock-title">📊 주식</h2>
                 <div class="market-text" id="stock-market-content"><span class="loading">로딩 중...</span></div>
             </div>
-            <div class="card rate">
-                <h2 id="rate-title">💸 금리</h2>
-                <div class="market-text" id="rate-market-content"><span class="loading">로딩 중...</span></div>
+            
+            <!-- MACRO 블록 (C열 - 기존 금리에서 명칭 변경 및 테마 수정) -->
+            <div class="card macro">
+                <h2 id="macro-title">💸 MACRO</h2>
+                <div class="market-text" id="macro-market-content"><span class="loading">로딩 중...</span></div>
+            </div>
+
+            <!-- 외환 블록 (D열 - 신설 🚀) -->
+            <div class="card fx">
+                <h2 id="fx-title">💵 외환</h2>
+                <div class="market-text" id="fx-market-content"><span class="loading">로딩 중...</span></div>
             </div>
         </div>
 
@@ -124,8 +136,6 @@
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             btn.classList.add('active');
-            
-            // 탭 전환 시 스크롤을 맨 위로 부드럽게 이동시키는 안전장치
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -178,11 +188,12 @@
         }
 
         async function fetchAllData() {
+            // 데일리 시황용(gid=0)과 마켓 인텔 세션(gid=1681828616) 타겟 설정
             const urlDaily = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=0&tqx=out:json`;
             const urlIntel = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=1681828616&tqx=out:json`;
 
             try {
-                // 1. 데일리 시황 파트 연동
+                // 1. 데일리 시황 파트 연동 (A: 날짜, B: 주식, C: 매크로, D: 외환)
                 const resDaily = await fetch(urlDaily);
                 const textDaily = await resDaily.text();
                 const jsonDaily = JSON.parse(textDaily.substring(textDaily.indexOf('{'), textDaily.lastIndexOf('}') + 1));
@@ -194,11 +205,15 @@
                     let displayDate = dailyDateInfo ? dailyDateInfo.display : '날짜 없음';
                     let titleDate = dailyDateInfo ? dailyDateInfo.title : 'XXXX-XX-XX';
                     
+                    // 각 열에 일치하는 엘리먼트 데이터 매핑 업데이트
                     document.getElementById('stock-market-content').innerText = lastRow.c[1] ? lastRow.c[1].v : '내용 없음';
-                    document.getElementById('rate-market-content').innerText = lastRow.c[2] ? lastRow.c[2].v : '내용 없음';
+                    document.getElementById('macro-market-content').innerText = lastRow.c[2] ? lastRow.c[2].v : '내용 없음';
+                    document.getElementById('fx-market-content').innerText = lastRow.c[3] ? lastRow.c[3].v : '내용 없음'; // D열 타겟팅
+                    
                     document.getElementById('live-update-date').innerText = `최종 업데이트: ${displayDate}`;
                     document.getElementById('stock-title').innerText = `📊 주식 (${titleDate})`;
-                    document.getElementById('rate-title').innerText = `💸 금리 (${titleDate})`;
+                    document.getElementById('macro-title').innerText = `💸 MACRO (${titleDate})`;
+                    document.getElementById('fx-title').innerText = `💵 외환 (${titleDate})`;
                 }
 
                 // 2. Market Intel 파트 연동
