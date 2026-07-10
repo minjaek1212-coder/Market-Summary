@@ -134,17 +134,8 @@
             color: #fff; font-size: 15px; font-weight: 700; cursor: pointer;
         }
         .secure-btn:hover { background-color: #0ea5e9; }
-
-        /* 🖨️ 리포트 발전기 전용 버튼 및 아카이브 서식 */
-        .btn-generator {
-            background-color: #10b981; color: #ffffff; border: none; border-radius: 8px;
-            padding: 16px 24px; font-size: 16px; font-weight: 700; cursor: pointer;
-            display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s;
-            margin-bottom: 32px; width: 100%; justify-content: center;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
-        }
-        .btn-generator:hover { background-color: #059669; }
         
+        /* 🗂️ 아카이브 서식 스타일 */
         .archive-list { display: flex; flex-direction: column; gap: 12px; }
         .archive-item {
             background-color: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 16px 20px;
@@ -153,22 +144,6 @@
         .archive-body { font-size: 14px; color: #c9d1d9; white-space: pre-wrap; }
 
         @keyframes blink { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-
-        /* ==========================================================================
-           🖨️ PRINT STYLES (A4용 PDF 출력 모드 돌입 시 대시보드 요소를 완벽히 감춤)
-           ========================================================================== */
-        @media print {
-            body { background-color: #ffffff !important; color: #000000 !important; padding: 0 !important; }
-            .navbar, header, .accordion-section, .card, .btn-generator, h2, #fx-weekly-page > h2, #fx-weekly-page > .archive-section { display: none !important; }
-            #fx-weekly-page { display: block !important; }
-            .print-template { display: block !important; color: #000000 !important; }
-        }
-        .print-template { display: none; font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; background: #fff; padding: 20px; }
-        .print-title { font-size: 28px; font-weight: bold; border-bottom: 3px solid #000; padding-bottom: 8px; margin-bottom: 4px; text-align: left; }
-        .print-subtitle { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 24px; text-align: left; }
-        .print-section-title { font-size: 16px; font-weight: bold; margin-top: 24px; margin-bottom: 12px; border-bottom: 1px solid #000; padding-bottom: 4px; }
-        .print-bullet-box { line-height: 1.8; font-size: 14px; text-align: justify; }
-        .print-bullet-box p { margin: 0 0 10px 0; }
     </style>
 </head>
 <body>
@@ -271,34 +246,19 @@
             <div id="secure-content-box" style="display: none;">
                 <header>
                     <div class="header-main">
-                        <h1>💵 FX WEEKLY REPORT GENERATOR</h1>
+                        <h1>💵 FX WEEKLY ARCHIVE</h1>
                     </div>
                     <div class="header-sub">
                         <br>
-                        구글 시트의 Daily FX 아카이브 데이터를 추적해, 이번 주간 변동 내용을 기반으로 한 전문 외환 보고서(A4 표준규격 PDF)를 즉석에서 생성합니다.
+                        구글 시트의 Daily FX 아카이브 데이터를 추적하여 과거 일자별 외환 시황 기록을 보관 및 모니터링합니다.
                     </div>
                 </header>
-
-                <button class="btn-generator" onclick="generateWeeklyPDF()">
-                    🖨️ WEEKLY FX 보고서 인쇄 / PDF 파일 저장
-                </button>
 
                 <div class="archive-section">
                     <h2 style="color: #10b981; border-color: #21262d;">🗂️ Daily FX Archive (외환 시황 보관소)</h2>
                     <div class="archive-list" id="fx-archive-container">
                         <div style="text-align:center; color:#8b949e; padding:30px;">데이터를 조회하는 중입니다...</div>
                     </div>
-                </div>
-            </div>
-
-            <div id="pdf-print-template" class="print-template">
-                <div class="print-title">FX Weekly</div>
-                <div class="print-subtitle" id="pdf-duration-text">1. 금주 동향(00/00 ~ 00/00)</div>
-                <div class="print-section-title">■ 주간 외환시장 요약 브리핑</div>
-                <div class="print-bullet-box" id="pdf-bullets-content">
-                    </div>
-                <div style="margin-top: 40px; font-size:11px; color:#666; text-align:right; border-top:1px dashed #ccc; padding-top:8px;">
-                    * 본 자료는 Hanwha Life Derivatives Solution Team 내부 대시보드 시스템에서 자동 컴파일된 리서치 아카이브본입니다.
                 </div>
             </div>
         </div>
@@ -332,7 +292,6 @@
         }
 
         const sheetId = '1SBD-To57_OOvAnB3a4vmN9fURD0wZgIR_hXaoIZPLpc';
-        let globalDailyRows = []; // 글로벌 캐싱 보관소 생성
 
         function parseAndFormatDate(dateVal) {
             if (!dateVal) return null;
@@ -369,7 +328,7 @@
 
         function convertMarkdownToHTML(rawText) {
             if (!rawText) return '내용 없음';
-            return rawText.replace(/\*\*(.*?)\*\"/g, '<strong>$1</strong>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            return rawText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         }
 
         function renderIntelReportToHTML(rawText) {
@@ -402,61 +361,6 @@
             return val.startsWith('-') ? "badge down" : "badge up";
         }
 
-        // 🖨️ 이번 주간 FX 데이터 실시간 역추적 결합 및 인쇄 발동기 스크립트
-        function generateWeeklyPDF() {
-            if (globalDailyRows.length === 0) {
-                alert("데이터가 완전히 로드되지 않았습니다. 잠시 후 다시 시도해 주세요.");
-                return;
-            }
-
-            const now = new Date();
-            const currentDay = now.getDay(); // 0: 일, 1: 월, ..., 6: 토
-            
-            // 이번 주 월요일과 금요일 날짜 계산기 객체 생성
-            const monday = new Date(now);
-            monday.setDate(now.getDate() - (currentDay === 0 ? 6 : currentDay - 1));
-            const friday = new Date(monday);
-            friday.setDate(monday.getDate() + 4);
-
-            const mString = `${monday.getMonth()+1}/${monday.getDate()}`;
-            const fString = `${friday.getMonth()+1}/${friday.getDate()}`;
-            document.getElementById('pdf-duration-text').innerText = `1. 금주 동향(${mString} ~ ${fString})`;
-
-            let combinedBulletsHtml = "";
-            let hasWeeklyData = false;
-
-            // 시트에 있는 모든 행을 돌며 이번 주 월요일 이후 데이터만 수집 정렬
-            globalDailyRows.forEach(row => {
-                let dateInfo = parseAndFormatDate(row.c[0] ? row.c[0].v : null);
-                if (dateInfo && dateInfo.rawObject >= monday) {
-                    let rawFxText = row.c[3] ? row.c[3].v : "";
-                    if (rawFxText && rawFxText !== '내용 없음') {
-                        hasWeeklyData = true;
-                        
-                        // 데일리 내용에 불릿 기호(•)가 안 붙어있을 경우 레이아웃 매핑 보정
-                        let formattedLine = rawFxText.trim();
-                        if(!formattedLine.startsWith('•')) {
-                            formattedLine = `• ${formattedLine}`;
-                        }
-                        
-                        // 마크다운 볼드 처리를 웹 표준 HTML 굵은 텍스트로 치환 적용
-                        formattedLine = formattedLine.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                        combinedBulletsHtml += `<p>${formattedLine}</p>`;
-                    }
-                }
-            });
-
-            if (!hasWeeklyData) {
-                alert("이번 주간 범위 내에 입력된 외환 데이터가 발견되지 않았습니다.");
-                return;
-            }
-
-            document.getElementById('pdf-bullets-content').innerHTML = combinedBulletsHtml;
-            
-            // 🚀 브라우저 네이티브 인쇄 팝업 즉시 기동 (미디어 쿼리에 의해 깔끔한 A4 리포트만 노출)
-            window.print();
-        }
-
         async function fetchAllData() {
             const urlDaily = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=0&tqx=out:json`;
             const urlIntel = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=1681828616&tqx=out:json`;
@@ -466,7 +370,7 @@
                 const resDaily = await fetch(urlDaily);
                 const textDaily = await resDaily.text();
                 const jsonDaily = JSON.parse(textDaily.substring(textDaily.indexOf('{'), textDaily.lastIndexOf('}') + 1));
-                globalDailyRows = jsonDaily.table.rows; // 글로벌 캐싱에 할당
+                const globalDailyRows = jsonDaily.table.rows;
 
                 if (globalDailyRows && globalDailyRows.length > 0) {
                     const lastRow = globalDailyRows[globalDailyRows.length - 1];
@@ -502,7 +406,6 @@
 
                     // 🗂️ FX WEEKLY 탭의 하단 보관소 아카이브 컴포넌트 실시간 빌드업
                     let archiveHtml = "";
-                    // 아카이브 리스트는 최신날짜 순서(역순)로 역루프 배치
                     for (let i = globalDailyRows.length - 1; i >= 0; i--) {
                         let currentRow = globalDailyRows[i];
                         let archiveDateInfo = parseAndFormatDate(currentRow.c[0] ? currentRow.c[0].v : null);
@@ -512,7 +415,7 @@
                             archiveHtml += `
                                 <div class="archive-item">
                                     <div class="archive-date">📅 ${archiveDateInfo.display} FX 데일리 기록</div>
-                                    <div class="archive-body">${fxContent}</div>
+                                    <div class="archive-body">${convertMarkdownToHTML(fxContent)}</div>
                                 </div>
                             `;
                         }
