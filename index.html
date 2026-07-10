@@ -16,7 +16,7 @@
         }
         .container { max-width: 1000px; margin: 0 auto; }
         
-        /* 📱 상단 메뉴바 - 스크롤 시 상단 고정 및 활성화 버튼 굵은 흰색 선 하이라이트 */
+        /* 📱 상단 메뉴바 */
         .navbar {
             display: flex; gap: 8px; background-color: #161b22;
             border: 1px solid #21262d; border-radius: 8px; padding: 6px; 
@@ -50,7 +50,21 @@
         .header-sub {
             margin-top: 10px; color: #94a3b8; font-size: 14px; line-height: 1.5;
         }
-        .date { color: #94a3b8; font-size: 14px; font-weight: 500; }
+        
+        /* 🚥 우측 상단 업데이트 날짜 영역 및 신호등 스타일 */
+        .date-container {
+            display: flex; align-items: center; gap: 8px;
+        }
+        .date { 
+            color: #ffffff; font-size: 14px; font-weight: 700; 
+        }
+        .status-light {
+            width: 12px; height: 12px; border-radius: 50%; display: inline-block;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.5); transition: all 0.3s ease;
+        }
+        .status-light.loading-light { background-color: #8b949e; box-shadow: 0 0 8px #8b949e; }
+        .status-light.success-light { background-color: #10b981; box-shadow: 0 0 12px #10b981; } /* 🟢 초록불 */
+        .status-light.danger-light { background-color: #ef4444; box-shadow: 0 0 12px #ef4444; }  /* 🔴 빨간불 */
 
         .card {
             background-color: #161b22; border: 1px solid #21262d; border-radius: 12px;
@@ -65,11 +79,7 @@
             padding: 24px; font-size: 15px; color: #c9d1d9; white-space: pre-wrap;
             word-break: break-all;
         }
-        
-        .market-text strong {
-            color: #ffffff;
-            font-weight: 700;
-        }
+        .market-text strong { color: #ffffff; font-weight: 700; }
         
         /* Market Intel 실시간 파싱용 서식 스타일 */
         .intel-section-title {
@@ -78,10 +88,7 @@
             border-left: 4px solid #38bdf8; display: block;
         }
         .intel-section-title:first-child { margin-top: 0; }
-        
-        .intel-paragraph {
-            margin: 0 0 12px 0; padding-left: 4px; text-align: justify; color: #c9d1d9;
-        }
+        .intel-paragraph { margin: 0 0 12px 0; padding-left: 4px; text-align: justify; color: #c9d1d9; }
 
         .no-opinion { text-align: center; color: #8b949e; font-style: italic; padding: 40px 0; font-size: 16px; }
         .loading { color: #8b949e; font-style: italic; animation: blink 1.5s infinite; }
@@ -100,10 +107,14 @@
             <header>
                 <div class="header-main">
                     <h1>📈 데일리 시황 대시보드</h1>
-                    <div class="date" id="live-update-date">최종 업데이트: 로딩 중...</div>
+                    <div class="date-container">
+                        <div class="date" id="live-update-date">최종 업데이트: 로딩 중...</div>
+                        <span class="status-light loading-light" id="live-status-light"></span>
+                    </div>
                 </div>
                 <div class="header-sub">
-                    ⚠️ 아래 의견은 AI 가 작성한 내용이며, 구체적인 시황 분석 및 운용 전략은 MARKET INTEL 탭을 사용해주세요. (업데이트 시간 KST 08:50)
+                    ⚠️ 아래 의견은 AI 가 작성한 내용이며, 구체적인 시황 분석 및 운용 전략 제시는 MARKET INTEL 탭을 사용해주세요. (업데이트 시간 KST 08:50)
+                    ⚠️ 최종 업데이트 날짜를 확인해주세요. 신호가 빨간색이면 금일 자료가 업데이트 되지 않은 것입니다.
                 </div>
             </header>
             
@@ -127,7 +138,10 @@
             <header>
                 <div class="header-main">
                     <h1>💡 Intel View & Monetization Menu</h1>
-                    <div class="date" id="intel-update-date">최종 업데이트: 로딩 중...</div>
+                    <div class="date-container">
+                        <div class="date" id="intel-update-date">최종 업데이트: 로딩 중...</div>
+                        <span class="status-light loading-light" id="intel-status-light"></span>
+                    </div>
                 </div>
                 <div class="header-sub">
                     Trading Desk 전문가들의 의견을 총합하여 현재 매크로 환경에 대한 분석 및 운용 전략을 제시합니다.
@@ -173,47 +187,71 @@
             return { display: `${year}. ${month}. ${day}.`, title: `${year}-${month}-${day}` };
         }
 
+        // 🟢🔴 당일 데이터 정합성을 대조하여 신호등 색상을 바꿔주는 로직
+        function updateStatusLight(elementId, targetDateInfo) {
+            const lightEl = document.getElementById(elementId);
+            if (!lightEl) return;
+            
+            lightEl.classList.remove('loading-light', 'success-light', 'danger-light');
+            
+            if (!targetDateInfo) {
+                lightEl.classList.add('danger-light');
+                return;
+            }
+
+            // 오늘 날짜 구하기 (YYYY-MM-DD 포맷 맞춤)
+            const today = new Date();
+            const tYear = today.getFullYear();
+            const tMonth = String(today.getMonth() + 1).padStart(2, '0');
+            const tDay = String(today.getDate()).padStart(2, '0');
+            const todayString = `${tYear}-${tMonth}-${tDay}`;
+
+            // 시트 날짜와 오늘 날짜가 100% 일치하면 초록불, 아니면 빨간불
+            if (targetDateInfo.title === todayString) {
+                lightEl.classList.add('success-light');
+            } else {
+                lightEl.classList.add('danger-light');
+            }
+        }
+
         function convertMarkdownToHTML(rawText) {
             if (!rawText) return '내용 없음';
             return rawText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         }
 
-// 🧠 Market Intel 심층 분석 전용 정밀 파서 (소제목 오인 현상 완벽 수정 버전)
-function renderIntelReportToHTML(rawText) {
-    if (!rawText) return `<div class="no-opinion">금일 의견 없음</div>`;
-    
-    const lines = rawText.split('\n');
-    let htmlOutput = "";
-
-    lines.forEach(line => {
-        let trimmed = line.trim();
-        if (!trimmed) return;
-
-        // 본문 내용 유출 오인 방지를 위해, 줄의 '시작 패턴'을 정확하게 매칭하거나 후처리 GEM의 명확한 타이틀만 필터링
-        if (trimmed.startsWith('###') || 
-            trimmed.startsWith('1.') || trimmed.startsWith('2.') || trimmed.startsWith('3.') || trimmed.startsWith('4.') || 
-            trimmed.startsWith('**###') || trimmed.startsWith('**1.') || trimmed.startsWith('**2.') || trimmed.startsWith('**3.') || trimmed.startsWith('**4.') ||
-            trimmed === '주요 매크로 이벤트 및 시장 영향' || 
-            trimmed === '미국 주식시장 브리핑 (US Market Brief)' || 
-            trimmed === 'TMT(기술/미디어/통신) 섹터 전문가 의견' || 
-            trimmed === 'US MKT INTEL VIEW & MONETIZATION MENU' ||
-            trimmed === '**주요 매크로 이벤트 및 시장 영향**' || 
-            trimmed === '**미국 주식시장 브리핑 (US Market Brief)**' || 
-            trimmed === '**TMT(기술/미디어/통신) 섹터 전문가 의견**' || 
-            trimmed === '**US MKT INTEL VIEW & MONETIZATION MENU**') {
+        function renderIntelReportToHTML(rawText) {
+            if (!rawText) return `<div class="no-opinion">금일 의견 없음</div>`;
             
-            let cleanTitle = trimmed.replace(/###/g, '').replace(/\*\*/g, '').trim();
-            htmlOutput += `<span class="intel-section-title">${cleanTitle}</span>`;
-        } 
-        else {
-            // 일반 본문은 <strong> 태그만 해석하여 안전하게 출력
-            let formattedLine = trimmed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            htmlOutput += `<p class="intel-paragraph">${formattedLine}</p>`;
-        }
-    });
+            const lines = rawText.split('\n');
+            let htmlOutput = "";
 
-    return htmlOutput;
-}
+            lines.forEach(line => {
+                let trimmed = line.trim();
+                if (!trimmed) return;
+
+                if (trimmed.startsWith('###') || 
+                    trimmed.startsWith('1.') || trimmed.startsWith('2.') || trimmed.startsWith('3.') || trimmed.startsWith('4.') || 
+                    trimmed.startsWith('**###') || trimmed.startsWith('**1.') || trimmed.startsWith('**2.') || trimmed.startsWith('**3.') || trimmed.startsWith('**4.') ||
+                    trimmed === '주요 매크로 이벤트 및 시장 영향' || 
+                    trimmed === '미국 주식시장 브리핑 (US Market Brief)' || 
+                    trimmed === 'TMT(기술/미디어/통신) 섹터 전문가 의견' || 
+                    trimmed === 'US MKT INTEL VIEW & MONETIZATION MENU' ||
+                    trimmed === '**주요 매크로 이벤트 및 시장 영향**' || 
+                    trimmed === '**미국 주식시장 브리핑 (US Market Brief)**' || 
+                    trimmed === '**TMT(기술/미디어/통신) 섹터 전문가 의견**' || 
+                    trimmed === '**US MKT INTEL VIEW & MONETIZATION MENU**') {
+                    
+                    let cleanTitle = trimmed.replace(/###/g, '').replace(/\*\"/g, '').replace(/\*\*/g, '').trim();
+                    htmlOutput += `<span class="intel-section-title">${cleanTitle}</span>`;
+                } 
+                else {
+                    let formattedLine = trimmed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    htmlOutput += `<p class="intel-paragraph">${formattedLine}</p>`;
+                }
+            });
+
+            return htmlOutput;
+        }
 
         async function fetchAllData() {
             const urlDaily = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=0&tqx=out:json`;
@@ -240,6 +278,9 @@ function renderIntelReportToHTML(rawText) {
                     document.getElementById('fx-market-content').innerHTML = convertMarkdownToHTML(rawFx);
                     
                     document.getElementById('live-update-date').innerText = `최종 업데이트: ${displayDate}`;
+                    
+                    // 신호등 상태 업데이트 촉발
+                    updateStatusLight('live-status-light', dailyDateInfo);
                 }
 
                 // 2. Market Intel 파트 연동
@@ -253,6 +294,7 @@ function renderIntelReportToHTML(rawText) {
                 if (!rowsIntel || rowsIntel.length === 0) {
                     intelContentEl.innerHTML = `<div class="no-opinion">금일 의견 없음</div>`;
                     document.getElementById('intel-update-date').innerText = "최종 업데이트: 없음";
+                    updateStatusLight('intel-status-light', null);
                     return;
                 }
 
@@ -272,9 +314,14 @@ function renderIntelReportToHTML(rawText) {
                 
                 let intelDisplayDate = firstValidDateInfo ? firstValidDateInfo.display : '날짜 없음';
                 document.getElementById('intel-update-date').innerText = `최종 업데이트: ${intelDisplayDate}`;
+                
+                // 마켓 인텔용 신호등 상태 업데이트 촉발
+                updateStatusLight('intel-status-light', firstValidDateInfo);
 
             } catch (error) {
                 console.error("데이터 통합 로딩 에러:", error);
+                updateStatusLight('live-status-light', null);
+                updateStatusLight('intel-status-light', null);
             }
         }
 
