@@ -40,7 +40,7 @@
         .page.active { display: block; }
 
         header {
-            border-bottom: 1px solid #1e293b; padding-bottom: 20px; margin-bottom: 32px;
+            border-bottom: 1px solid #1e293b; padding-bottom: 20px; margin-bottom: 24px;
             margin-top: 12px;
         }
         .header-main {
@@ -63,8 +63,47 @@
             box-shadow: 0 0 8px rgba(0, 0, 0, 0.5); transition: all 0.3s ease;
         }
         .status-light.loading-light { background-color: #8b949e; box-shadow: 0 0 8px #8b949e; }
-        .status-light.success-light { background-color: #10b981; box-shadow: 0 0 12px #10b981; } /* 🟢 초록불 */
-        .status-light.danger-light { background-color: #ef4444; box-shadow: 0 0 12px #ef4444; }  /* 🔴 빨간불 */
+        .status-light.success-light { background-color: #10b981; box-shadow: 0 0 12px #10b981; } 
+        .status-light.danger-light { background-color: #ef4444; box-shadow: 0 0 12px #ef4444; }  
+
+        /* 🔽 확장/축소 드롭다운 마켓 아코디언 스타일 */
+        .accordion-section {
+            background-color: #161b22; border: 1px solid #21262d; border-radius: 8px;
+            margin-bottom: 24px; overflow: hidden;
+        }
+        .accordion-header {
+            width: 100%; background: #1f242c; border: none; padding: 14px 20px;
+            color: #ffffff; font-size: 15px; font-weight: 700; text-align: left;
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+            transition: background 0.2s;
+        }
+        .accordion-header:hover { background: #262c36; }
+        .accordion-icon {
+            font-size: 12px; color: #38bdf8; transition: transform 0.2s ease;
+        }
+        .accordion-content {
+            display: none; padding: 20px; background-color: #161b22;
+            border-top: 1px solid #21262d; overflow-x: auto;
+        }
+        .accordion-content.open { display: block; }
+        .accordion-header.open .accordion-icon { transform: rotate(180deg); }
+
+        /* 📊 CITI 메일 데이터 복제 그리드 테이블 스타일 */
+        .market-table {
+            width: 100%; border-collapse: collapse; text-align: right; font-size: 14px; min-width: 600px;
+        }
+        .market-table th, .market-table td { padding: 10px 12px; border-bottom: 1px solid #21262d; }
+        .market-table th { color: #8b949e; font-weight: 600; font-size: 12px; letter-spacing: 0.5px; }
+        .market-table td.asset-name { text-align: left; font-weight: 600; color: #38bdf8; }
+        .market-table td.asset-current { font-weight: 500; color: #ffffff; }
+        
+        /* 🟩🟥 변동분 전용 신호등 박스 배색 */
+        .badge {
+            display: inline-block; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 13px; min-width: 75px; text-align: center;
+        }
+        .badge.up { background-color: rgba(16, 185, 129, 0.25); color: #10b981; }     /* 상승 초록불 */
+        .badge.down { background-color: rgba(239, 68, 68, 0.25); color: #ef4444; }    /* 하락 빨간불 */
+        .badge.neutral { background-color: #21262d; color: #8b949e; }
 
         .card {
             background-color: #161b22; border: 1px solid #21262d; border-radius: 12px;
@@ -73,7 +112,6 @@
         }
         .card h2 { margin-top: 0; margin-bottom: 20px; font-size: 22px; font-weight: 700; border-bottom: 1px solid #30363d; padding-bottom: 10px; color: #38bdf8; }
 
-        /* 📑 시황 리포트 텍스트 박스 */
         .market-text {
             background-color: #0d1117; border: 1px solid #30363d; border-radius: 8px;
             padding: 24px; font-size: 15px; color: #c9d1d9; white-space: pre-wrap;
@@ -81,7 +119,6 @@
         }
         .market-text strong { color: #ffffff; font-weight: 700; }
         
-        /* Market Intel 실시간 파싱용 서식 스타일 */
         .intel-section-title {
             font-size: 18px; font-weight: 700; color: #38bdf8;
             margin-top: 28px; margin-bottom: 14px; padding-left: 10px;
@@ -114,9 +151,33 @@
                 </div>
                 <div class="header-sub">
                     ⚠️ 아래 의견은 AI 가 작성한 내용이며, 구체적인 시황 분석 및 운용 전략 제시는 MARKET INTEL 탭을 사용해주세요. (업데이트 시간 KST 08:50)<br>
-                    ⚠️ 최종 업데이트 날짜를 확인해주세요. 신호가 빨간색이면 금일 자료가 업데이트 되지 않은 것입니다.
+                    ⚠️ 우측 상단의 신호등을 확인해주세요. 금일 자료가 정상 반영되면 🟢초록불, 미반영 상태면 🔴빨간불이 표시됩니다.
                 </div>
             </header>
+
+            <div class="accordion-section">
+                <button class="accordion-header" onclick="toggleAccordion('market-dropdown', this)">
+                    <span>🌐 CITI Daily Markets Monitor (글로벌 자산 변동분 데이터)</span>
+                    <span class="accordion-icon" id="arrow-icon">▼</span>
+                </button>
+                <div class="accordion-content" id="market-dropdown">
+                    <table class="market-table">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left;">MARKETS</th>
+                                <th>CURRENT</th>
+                                <th>1D CHG</th>
+                                <th>1D %CHG</th>
+                                <th>1WK CHG</th>
+                                <th>1WK %CHG</th>
+                            </tr>
+                        </thead>
+                        <tbody id="market-table-body">
+                            <tr><td colspan="6" style="text-align:center; color:#8b949e;">데이터를 불러오는 중입니다...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             
             <div class="card stock">
                 <h2>📊 주식</h2>
@@ -157,6 +218,12 @@
     </div>
 
     <script>
+        function toggleAccordion(id, btn) {
+            const content = document.getElementById(id);
+            content.classList.toggle('open');
+            btn.classList.toggle('open');
+        }
+
         function switchPage(pageId, btn) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -187,31 +254,17 @@
             return { display: `${year}. ${month}. ${day}.`, title: `${year}-${month}-${day}` };
         }
 
-        // 🟢🔴 당일 데이터 정합성을 대조하여 신호등 색상을 바꿔주는 로직
         function updateStatusLight(elementId, targetDateInfo) {
             const lightEl = document.getElementById(elementId);
             if (!lightEl) return;
-            
             lightEl.classList.remove('loading-light', 'success-light', 'danger-light');
-            
-            if (!targetDateInfo) {
-                lightEl.classList.add('danger-light');
-                return;
-            }
+            if (!targetDateInfo) { lightEl.classList.add('danger-light'); return; }
 
-            // 오늘 날짜 구하기 (YYYY-MM-DD 포맷 맞춤)
             const today = new Date();
-            const tYear = today.getFullYear();
-            const tMonth = String(today.getMonth() + 1).padStart(2, '0');
-            const tDay = String(today.getDate()).padStart(2, '0');
-            const todayString = `${tYear}-${tMonth}-${tDay}`;
+            const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-            // 시트 날짜와 오늘 날짜가 100% 일치하면 초록불, 아니면 빨간불
-            if (targetDateInfo.title === todayString) {
-                lightEl.classList.add('success-light');
-            } else {
-                lightEl.classList.add('danger-light');
-            }
+            if (targetDateInfo.title === todayString) { lightEl.classList.add('success-light'); } 
+            else { lightEl.classList.add('danger-light'); }
         }
 
         function convertMarkdownToHTML(rawText) {
@@ -221,7 +274,6 @@
 
         function renderIntelReportToHTML(rawText) {
             if (!rawText) return `<div class="no-opinion">금일 의견 없음</div>`;
-            
             const lines = rawText.split('\n');
             let htmlOutput = "";
 
@@ -229,36 +281,34 @@
                 let trimmed = line.trim();
                 if (!trimmed) return;
 
-                if (trimmed.startsWith('###') || 
-                    trimmed.startsWith('1.') || trimmed.startsWith('2.') || trimmed.startsWith('3.') || trimmed.startsWith('4.') || 
+                if (trimmed.startsWith('###') || trimmed.startsWith('1.') || trimmed.startsWith('2.') || trimmed.startsWith('3.') || trimmed.startsWith('4.') || 
                     trimmed.startsWith('**###') || trimmed.startsWith('**1.') || trimmed.startsWith('**2.') || trimmed.startsWith('**3.') || trimmed.startsWith('**4.') ||
-                    trimmed === '주요 매크로 이벤트 및 시장 영향' || 
-                    trimmed === '미국 주식시장 브리핑 (US Market Brief)' || 
-                    trimmed === 'TMT(기술/미디어/통신) 섹터 전문가 의견' || 
-                    trimmed === 'US MKT INTEL VIEW & MONETIZATION MENU' ||
-                    trimmed === '**주요 매크로 이벤트 및 시장 영향**' || 
-                    trimmed === '**미국 주식시장 브리핑 (US Market Brief)**' || 
-                    trimmed === '**TMT(기술/미디어/통신) 섹터 전문가 의견**' || 
-                    trimmed === '**US MKT INTEL VIEW & MONETIZATION MENU**') {
-                    
+                    trimmed === '주요 매크로 이벤트 및 시장 영향' || trimmed === '미국 주식시장 브리핑 (US Market Brief)' || 
+                    trimmed === 'TMT(기술/미디어/통신) 섹터 전문가 의견' || trimmed === 'US MKT INTEL VIEW & MONETIZATION MENU' ||
+                    trimmed === '**주요 매크로 이벤트 및 시장 영향**' || trimmed === '**미국 주식시장 브리핑 (US Market Brief)**' || 
+                    trimmed === '**TMT(기술/미디어/통신) 섹터 전문가 의견**' || trimmed === '**US MKT INTEL VIEW & MONETIZATION MENU**') {
                     let cleanTitle = trimmed.replace(/###/g, '').replace(/\*\"/g, '').replace(/\*\*/g, '').trim();
                     htmlOutput += `<span class="intel-section-title">${cleanTitle}</span>`;
-                } 
-                else {
+                } else {
                     let formattedLine = trimmed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                     htmlOutput += `<p class="intel-paragraph">${formattedLine}</p>`;
                 }
             });
-
             return htmlOutput;
         }
 
+        function getBadgeClass(val) {
+            if (!val || val == "0" || val == "0.0" || val == "0.00") return "badge neutral";
+            return val.startsWith('-') ? "badge down" : "badge up";
+        }
+
         async function fetchAllData() {
+            // 🛠️ 오퍼레이션 절약을 위해 gid=0 (1번째 시트) 주소 하나로 통합 제어
             const urlDaily = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=0&tqx=out:json`;
             const urlIntel = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=1681828616&tqx=out:json`;
 
             try {
-                // 1. 데일리 시황 파트 연동
+                // 1. 데일리 시황 및 CITI 마켓 데이터 통합 연동 (1번째 시트 조회)
                 const resDaily = await fetch(urlDaily);
                 const textDaily = await resDaily.text();
                 const jsonDaily = JSON.parse(textDaily.substring(textDaily.indexOf('{'), textDaily.lastIndexOf('}') + 1));
@@ -267,61 +317,61 @@
                 if (rowsDaily && rowsDaily.length > 0) {
                     const lastRow = rowsDaily[rowsDaily.length - 1];
                     let dailyDateInfo = parseAndFormatDate(lastRow.c[0] ? lastRow.c[0].v : null);
-                    let displayDate = dailyDateInfo ? dailyDateInfo.display : '날짜 없음';
                     
-                    let rawStock = lastRow.c[1] ? lastRow.c[1].v : '내용 없음';
-                    let rawMacro = lastRow.c[2] ? lastRow.c[2].v : '내용 없음';
-                    let rawFx = lastRow.c[3] ? lastRow.c[3].v : '내용 없음';
-
-                    document.getElementById('stock-market-content').innerHTML = convertMarkdownToHTML(rawStock);
-                    document.getElementById('macro-market-content').innerHTML = convertMarkdownToHTML(rawMacro);
-                    document.getElementById('fx-market-content').innerHTML = convertMarkdownToHTML(rawFx);
-                    
-                    document.getElementById('live-update-date').innerText = `최종 업데이트: ${displayDate}`;
-                    
-                    // 신호등 상태 업데이트 촉발
+                    document.getElementById('stock-market-content').innerHTML = convertMarkdownToHTML(lastRow.c[1] ? lastRow.c[1].v : '내용 없음');
+                    document.getElementById('macro-market-content').innerHTML = convertMarkdownToHTML(lastRow.c[2] ? lastRow.c[2].v : '내용 없음');
+                    document.getElementById('fx-market-content').innerHTML = convertMarkdownToHTML(lastRow.c[3] ? lastRow.c[3].v : '내용 없음');
+                    document.getElementById('live-update-date').innerText = `최종 업데이트: ${dailyDateInfo ? dailyDateInfo.display : '날짜 없음'}`;
                     updateStatusLight('live-status-light', dailyDateInfo);
+
+                    // 🌐 [V1.1 반영] 동일한 row의 E열(5번째 칸, index=4)에서 JSON 마켓 데이터를 꺼내옴
+                    try {
+                        let rawJsonString = lastRow.c[4] ? lastRow.c[4].v : "[]";
+                        let marketDataArray = JSON.parse(rawJsonString);
+
+                        if (marketDataArray && marketDataArray.length > 0) {
+                            let tableHtml = "";
+                            marketDataArray.forEach(item => {
+                                tableHtml += `
+                                    <tr>
+                                        <td class="asset-name">${item.name}</td>
+                                        <td class="asset-current">${item.current}</td>
+                                        <td><span class="${getBadgeClass(item.chg1d)}">${item.chg1d}</span></td>
+                                        <td><span class="${getBadgeClass(item.chg1d_pct)}">${item.chg1d_pct}%</span></td>
+                                        <td><span class="${getBadgeClass(item.chg1wk)}">${item.chg1wk}</span></td>
+                                        <td><span class="${getBadgeClass(item.chg1wk_pct)}">${item.chg1wk_pct}%</span></td>
+                                    </tr>
+                                `;
+                            });
+                            document.getElementById('market-table-body').innerHTML = tableHtml;
+                        } else {
+                            document.getElementById('market-table-body').innerHTML = `<tr><td colspan="6" style="text-align:center; color:#8b949e;">금일 마켓 테이블 데이터가 비어있습니다.</td></tr>`;
+                        }
+                    } catch (jsonErr) {
+                        console.error("E열 JSON 데이터 파싱 실패:", jsonErr);
+                        document.getElementById('market-table-body').innerHTML = `<tr><td colspan="6" style="text-align:center; color:#ef4444;">마켓 테이블 형식 오류 (JSON 파싱 에러)</td></tr>`;
+                    }
                 }
 
-                // 2. Market Intel 파트 연동
+                // 2. Market Intel 파트 연동 (2번째 시트 조회)
                 const resIntel = await fetch(urlIntel);
                 const textIntel = await resIntel.text();
                 const jsonIntel = JSON.parse(textIntel.substring(textIntel.indexOf('{'), textIntel.lastIndexOf('}') + 1));
                 const rowsIntel = jsonIntel.table.rows;
 
-                const intelContentEl = document.getElementById('intel-market-content');
-                
-                if (!rowsIntel || rowsIntel.length === 0) {
-                    intelContentEl.innerHTML = `<div class="no-opinion">금일 의견 없음</div>`;
-                    document.getElementById('intel-update-date').innerText = "최종 업데이트: 없음";
-                    updateStatusLight('intel-status-light', null);
-                    return;
+                if (rowsIntel && rowsIntel.length > 0) {
+                    let combinedReport = ""; let firstValidDateInfo = null;
+                    rowsIntel.forEach(row => {
+                        if (row.c[0] && row.c[0].v && !firstValidDateInfo) firstValidDateInfo = parseAndFormatDate(row.c[0].v);
+                        if (row.c[1] && row.c[1].v) combinedReport += row.c[1].v + "\n";
+                    });
+                    document.getElementById('intel-market-content').innerHTML = renderIntelReportToHTML(combinedReport);
+                    document.getElementById('intel-update-date').innerText = `최종 업데이트: ${firstValidDateInfo ? firstValidDateInfo.display : '날짜 없음'}`;
+                    updateStatusLight('intel-status-light', firstValidDateInfo);
                 }
-
-                let combinedReport = "";
-                let firstValidDateInfo = null;
-
-                rowsIntel.forEach(row => {
-                    if (row.c[0] && row.c[0].v && !firstValidDateInfo) {
-                        firstValidDateInfo = parseAndFormatDate(row.c[0].v);
-                    }
-                    if (row.c[1] && row.c[1].v) {
-                        combinedReport += row.c[1].v + "\n";
-                    }
-                });
-
-                intelContentEl.innerHTML = renderIntelReportToHTML(combinedReport);
-                
-                let intelDisplayDate = firstValidDateInfo ? firstValidDateInfo.display : '날짜 없음';
-                document.getElementById('intel-update-date').innerText = `최종 업데이트: ${intelDisplayDate}`;
-                
-                // 마켓 인텔용 신호등 상태 업데이트 촉발
-                updateStatusLight('intel-status-light', firstValidDateInfo);
 
             } catch (error) {
                 console.error("데이터 통합 로딩 에러:", error);
-                updateStatusLight('live-status-light', null);
-                updateStatusLight('intel-status-light', null);
             }
         }
 
