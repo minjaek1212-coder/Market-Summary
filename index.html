@@ -101,8 +101,8 @@
         .badge {
             display: inline-block; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 13px; min-width: 75px; text-align: center;
         }
-        .badge.up { background-color: rgba(16, 185, 129, 0.25); color: #10b981; }     /* 상승 초록불 */
-        .badge.down { background-color: rgba(239, 68, 68, 0.25); color: #ef4444; }    /* 하락 빨간불 */
+        .badge.up { background-color: rgba(16, 185, 129, 0.25); color: #10b981; }     
+        .badge.down { background-color: rgba(239, 68, 68, 0.25); color: #ef4444; }    
         .badge.neutral { background-color: #21262d; color: #8b949e; }
 
         .card {
@@ -135,11 +135,13 @@
 <body>
 
     <div class="container">
+        <!-- 📱 상단 메뉴바 -->
         <nav class="navbar">
             <button class="nav-btn active" onclick="switchPage('daily-page', this)">📊 데일리 시황</button>
             <button class="nav-btn" onclick="switchPage('intel-page', this)">💡 Market Intel</button>
         </nav>
 
+        <!-- 1️⃣ 첫 번째 페이지: 데일리 시황 -->
         <div id="daily-page" class="page active">
             <header>
                 <div class="header-main">
@@ -155,9 +157,10 @@
                 </div>
             </header>
 
+            <!-- 🔽 블록 명칭 수정: Daily Markets Monitor 아코디언 메뉴 -->
             <div class="accordion-section">
                 <button class="accordion-header" onclick="toggleAccordion('market-dropdown', this)">
-                    <span>🌐 CITI Daily Markets Monitor (글로벌 자산 변동분 데이터)</span>
+                    <span>🌐 Daily Markets Monitor</span>
                     <span class="accordion-icon" id="arrow-icon">▼</span>
                 </button>
                 <div class="accordion-content" id="market-dropdown">
@@ -195,6 +198,7 @@
             </div>
         </div>
 
+        <!-- 2️⃣ 두 번째 페이지: Market Intel -->
         <div id="intel-page" class="page">
             <header>
                 <div class="header-main">
@@ -287,7 +291,7 @@
                     trimmed === 'TMT(기술/미디어/통신) 섹터 전문가 의견' || trimmed === 'US MKT INTEL VIEW & MONETIZATION MENU' ||
                     trimmed === '**주요 매크로 이벤트 및 시장 영향**' || trimmed === '**미국 주식시장 브리핑 (US Market Brief)**' || 
                     trimmed === '**TMT(기술/미디어/통신) 섹터 전문가 의견**' || trimmed === '**US MKT INTEL VIEW & MONETIZATION MENU**') {
-                    let cleanTitle = trimmed.replace(/###/g, '').replace(/\*\"/g, '').replace(/\*\*/g, '').trim();
+                    let cleanTitle = trimmed.replace(/###/g, '').replace(/\*\"/g, '').replace(/\*\转/g, '').replace(/\*\*/g, '').trim();
                     htmlOutput += `<span class="intel-section-title">${cleanTitle}</span>`;
                 } else {
                     let formattedLine = trimmed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
@@ -303,12 +307,11 @@
         }
 
         async function fetchAllData() {
-            // 🛠️ 오퍼레이션 절약을 위해 gid=0 (1번째 시트) 주소 하나로 통합 제어
             const urlDaily = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=0&tqx=out:json`;
             const urlIntel = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=1681828616&tqx=out:json`;
 
             try {
-                // 1. 데일리 시황 및 CITI 마켓 데이터 통합 연동 (1번째 시트 조회)
+                // 1. 데일리 시황 및 CITI 마켓 데이터 통합 연동
                 const resDaily = await fetch(urlDaily);
                 const textDaily = await resDaily.text();
                 const jsonDaily = JSON.parse(textDaily.substring(textDaily.indexOf('{'), textDaily.lastIndexOf('}') + 1));
@@ -324,36 +327,50 @@
                     document.getElementById('live-update-date').innerText = `최종 업데이트: ${dailyDateInfo ? dailyDateInfo.display : '날짜 없음'}`;
                     updateStatusLight('live-status-light', dailyDateInfo);
 
-                    // 🌐 [V1.1 반영] 동일한 row의 E열(5번째 칸, index=4)에서 JSON 마켓 데이터를 꺼내옴
+                    // 🎯 [V1.2 지정 자산 필터링 기능 탑재]
                     try {
                         let rawJsonString = lastRow.c[4] ? lastRow.c[4].v : "[]";
                         let marketDataArray = JSON.parse(rawJsonString);
 
+                        // 트레이더님이 요청하신 딱 8가지 핵심 모니터링 타겟 배열 정의
+                        const targetAssets = [
+                            "Dow Jones", "S&P 500", "Nasdaq 100", 
+                            "Hang Seng Index", "Nikkei 225", 
+                            "WTI Crude Oil", "UST 10yr", "JGB 10yr"
+                        ];
+
                         if (marketDataArray && marketDataArray.length > 0) {
                             let tableHtml = "";
-                            marketDataArray.forEach(item => {
-                                tableHtml += `
-                                    <tr>
-                                        <td class="asset-name">${item.name}</td>
-                                        <td class="asset-current">${item.current}</td>
-                                        <td><span class="${getBadgeClass(item.chg1d)}">${item.chg1d}</span></td>
-                                        <td><span class="${getBadgeClass(item.chg1d_pct)}">${item.chg1d_pct}%</span></td>
-                                        <td><span class="${getBadgeClass(item.chg1wk)}">${item.chg1wk}</span></td>
-                                        <td><span class="${getBadgeClass(item.chg1wk_pct)}">${item.chg1wk_pct}%</span></td>
-                                    </tr>
-                                `;
+                            
+                            // 지정한 순서(targetAssets)대로 화면에 그리도록 정렬 파싱 처리
+                            targetAssets.forEach(targetName => {
+                                const item = marketDataArray.find(d => d.name.trim().toLowerCase() === targetName.toLowerCase());
+                                
+                                if (item) {
+                                    tableHtml += `
+                                        <tr>
+                                            <td class="asset-name">${item.name}</td>
+                                            <td class="asset-current">${item.current}</td>
+                                            <td><span class="${getBadgeClass(item.chg1d)}">${item.chg1d}</span></td>
+                                            <td><span class="${getBadgeClass(item.chg1d_pct)}">${item.chg1d_pct}%</span></td>
+                                            <td><span class="${getBadgeClass(item.chg1wk)}">${item.chg1wk}</span></td>
+                                            <td><span class="${getBadgeClass(item.chg1wk_pct)}">${item.chg1wk_pct}%</span></td>
+                                        </tr>
+                                    `;
+                                }
                             });
-                            document.getElementById('market-table-body').innerHTML = tableHtml;
+                            
+                            document.getElementById('market-table-body').innerHTML = tableHtml || `<tr><td colspan="6" style="text-align:center; color:#8b949e;">일치하는 핵심 마켓 지표가 없습니다.</td></tr>`;
                         } else {
                             document.getElementById('market-table-body').innerHTML = `<tr><td colspan="6" style="text-align:center; color:#8b949e;">금일 마켓 테이블 데이터가 비어있습니다.</td></tr>`;
                         }
                     } catch (jsonErr) {
-                        console.error("E열 JSON 데이터 파싱 실패:", jsonErr);
+                        console.error("마켓 JSON 데이터 파싱 실패:", jsonErr);
                         document.getElementById('market-table-body').innerHTML = `<tr><td colspan="6" style="text-align:center; color:#ef4444;">마켓 테이블 형식 오류 (JSON 파싱 에러)</td></tr>`;
                     }
                 }
 
-                // 2. Market Intel 파트 연동 (2번째 시트 조회)
+                // 2. Market Intel 파트 연동
                 const resIntel = await fetch(urlIntel);
                 const textIntel = await resIntel.text();
                 const jsonIntel = JSON.parse(textIntel.substring(textIntel.indexOf('{'), textIntel.lastIndexOf('}') + 1));
