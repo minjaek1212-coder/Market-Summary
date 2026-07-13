@@ -361,7 +361,7 @@
             return val.startsWith('-') ? "badge down" : "badge up";
         }
 
-        async function fetchAllData() {
+async function fetchAllData() {
             const urlDaily = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=0&tqx=out:json`;
             const urlIntel = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=1681828616&tqx=out:json`;
 
@@ -402,6 +402,15 @@
                         }
                     } catch (jsonErr) {
                         console.error("마켓 JSON 데이터 파싱 실패:", jsonErr);
+                    }
+
+                    // ⚡ [반영] 데이터 바인딩 완료 후 Daily Markets Monitor 아코디언 메뉴 디폴트 오픈(활성화)
+                    const mktDropdown = document.getElementById('market-dropdown');
+                    if (mktDropdown) {
+                        mktDropdown.classList.add('open');
+                        // 아코디언 화살표(▼) 회전 동기화를 위해 헤더 버튼에도 open 클래스 부여
+                        const accHeader = document.querySelector('.accordion-header');
+                        if (accHeader) accHeader.classList.add('open');
                     }
 
                     // 🗂️ FX WEEKLY 탭의 하단 보관소 아카이브 컴포넌트 실시간 빌드업
