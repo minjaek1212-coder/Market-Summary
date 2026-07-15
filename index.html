@@ -7,143 +7,83 @@
     <style>
         *, *::before, *::after { box-sizing: border-box; }
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #0f1115;
-            color: #e2e8f0;
-            margin: 0;
-            padding: 24px;
-            line-height: 1.7;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #0f1115; color: #e2e8f0; margin: 0; padding: 24px; line-height: 1.7;
         }
         .container { max-width: 1000px; margin: 0 auto; }
-        
-        /* 📱 상단 메뉴바 */
         .navbar {
-            display: flex; gap: 8px; background-color: #161b22;
-            border: 1px solid #21262d; border-radius: 8px; padding: 6px; 
-            margin-bottom: 24px;
-            position: sticky; top: 12px; z-index: 1000;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            display: flex; gap: 8px; background-color: #161b22; border: 1px solid #21262d; border-radius: 8px;
+            padding: 6px; margin-bottom: 24px; position: sticky; top: 12px; z-index: 1000; box-shadow: 0 8px 16px rgba(0,0,0,0.3);
         }
         .nav-btn {
-            background: none; border: none; color: #8b949e; padding: 10px 20px;
-            font-size: 15px; font-weight: 600; cursor: pointer; border-radius: 6px; transition: all 0.2s ease;
+            background: none; border: none; color: #8b949e; padding: 10px 20px; font-size: 15px;
+            font-weight: 600; cursor: pointer; border-radius: 6px; transition: all 0.2s ease;
         }
         .nav-btn:hover { color: #ffffff; background-color: #21262d; }
-        .nav-btn.active { 
-            color: #ffffff; 
-            background-color: #38bdf8; 
-            border: 3px solid #ffffff; 
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-        }
-
+        .nav-btn.active { color: #ffffff; background-color: #38bdf8; border: 3px solid #ffffff; box-shadow: 0 0 15px rgba(255,255,255,0.5); }
         .page { display: none; }
         .page.active { display: block; }
-
-        header {
-            border-bottom: 1px solid #1e293b; padding-bottom: 20px; margin-bottom: 24px;
-            margin-top: 12px;
-        }
-        .header-main {
-            display: flex; justify-content: space-between; align-items: flex-end;
-        }
+        header { border-bottom: 1px solid #1e293b; padding-bottom: 20px; margin-bottom: 24px; margin-top: 12px; }
+        .header-main { display: flex; justify-content: space-between; align-items: flex-end; }
         header h1 { color: #ffffff; margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
-        .header-sub {
-            margin-top: 10px; color: #94a3b8; font-size: 14px; line-height: 1.5;
-        }
-        
-        /* 🚥 우측 상단 업데이트 날짜 영역 및 신호등 스타일 */
+        .header-sub { margin-top: 10px; color: #94a3b8; font-size: 14px; line-height: 1.5; }
         .date-container { display: flex; align-items: center; gap: 8px; }
         .date { color: #ffffff; font-size: 14px; font-weight: 700; }
-        .status-light {
-            width: 12px; height: 12px; border-radius: 50%; display: inline-block;
-            box-shadow: 0 0 8px rgba(0, 0, 0, 0.5); transition: all 0.3s ease;
-        }
-        .status-light.loading-light { background-color: #8b949e; box-shadow: 0 0 8px #8b949e; }
+        .status-light { width: 12px; height: 12px; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px rgba(0,0,0,0.5); }
+        .status-light.loading-light { background-color: #8b949e; }
         .status-light.success-light { background-color: #10b981; box-shadow: 0 0 12px #10b981; } 
         .status-light.danger-light { background-color: #ef4444; box-shadow: 0 0 12px #ef4444; }  
-
-        /* 🔽 확장/축소 드롭다운 마켓 아코디언 스타일 */
-        .accordion-section {
-            background-color: #161b22; border: 1px solid #21262d; border-radius: 8px;
-            margin-bottom: 24px; overflow: hidden;
-        }
+        .accordion-section { background-color: #161b22; border: 1px solid #21262d; border-radius: 8px; margin-bottom: 24px; overflow: hidden; }
         .accordion-header {
-            width: 100%; background: #1f242c; border: none; padding: 14px 20px;
-            color: #ffffff; font-size: 15px; font-weight: 700; text-align: left;
-            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
-            transition: background 0.2s;
+            width: 100%; background: #1f242c; border: none; padding: 14px 20px; color: #ffffff; font-size: 15px;
+            font-weight: 700; display: flex; justify-content: space-between; align-items: center; cursor: pointer;
         }
-        .accordion-header:hover { background: #262c36; }
         .accordion-icon { font-size: 12px; color: #38bdf8; transition: transform 0.2s ease; }
-        .accordion-content {
-            display: none; padding: 20px; background-color: #161b22;
-            border-top: 1px solid #21262d; overflow-x: auto;
-        }
+        .accordion-content { display: none; padding: 20px; background-color: #161b22; border-top: 1px solid #21262d; overflow-x: auto; }
         .accordion-content.open { display: block; }
         .accordion-header.open .accordion-icon { transform: rotate(180deg); }
-
-        /* 📊 CITI 메일 데이터 복제 그리드 테이블 스타일 */
         .market-table { width: 100%; border-collapse: collapse; text-align: right; font-size: 14px; min-width: 600px; }
         .market-table th, .market-table td { padding: 10px 12px; border-bottom: 1px solid #21262d; }
-        .market-table th { color: #ffffff; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; }
+        .market-table th { color: #ffffff; font-weight: 700; font-size: 12px; }
         .market-table td.asset-name { text-align: left; font-weight: 600; color: #38bdf8; }
         .market-table td.asset-current { font-weight: 500; color: #ffffff; }
-        
-        /* 🟩🟥 변동분 전용 신호등 박스 배색 */
         .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 13px; min-width: 75px; text-align: center; }
-        .badge.up { background-color: rgba(16, 185, 129, 0.25); color: #10b981; }     
-        .badge.down { background-color: rgba(239, 68, 68, 0.25); color: #ef4444; }    
+        .badge.up { background-color: rgba(16,185,129,0.25); color: #10b981; }     
+        .badge.down { background-color: rgba(239,68,68,0.25); color: #ef4444; }    
         .badge.neutral { background-color: #21262d; color: #8b949e; }
-
-        .card {
-            background-color: #161b22; border: 1px solid #21262d; border-radius: 12px;
-            padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            border-top: 4px solid #38bdf8;
-        }
+        .card { background-color: #161b22; border: 1px solid #21262d; border-radius: 12px; padding: 24px; margin-bottom: 24px; border-top: 4px solid #38bdf8; }
         .card h2 { margin-top: 0; margin-bottom: 20px; font-size: 22px; font-weight: 700; border-bottom: 1px solid #30363d; padding-bottom: 10px; color: #38bdf8; }
-
-        .market-text {
-            background-color: #0d1117; border: 1px solid #30363d; border-radius: 8px;
-            padding: 24px; font-size: 15px; color: #c9d1d9; white-space: pre-wrap;
-            word-break: break-all;
-        }
+        .market-text { background-color: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 24px; font-size: 15px; color: #c9d1d9; white-space: pre-wrap; }
         .market-text strong { color: #ffffff; font-weight: 700; }
-        
-        .intel-section-title {
-            font-size: 18px; font-weight: 700; color: #38bdf8;
-            margin-top: 28px; margin-bottom: 14px; padding-left: 10px;
-            border-left: 4px solid #38bdf8; display: block;
-        }
-        .intel-section-title:first-child { margin-top: 0; }
+        .intel-section-title { font-size: 18px; font-weight: 700; color: #38bdf8; margin-top: 28px; margin-bottom: 14px; padding-left: 10px; border-left: 4px solid #38bdf8; display: block; }
         .intel-paragraph { margin: 0 0 12px 0; padding-left: 4px; text-align: justify; color: #c9d1d9; }
-
-        .no-opinion { text-align: center; color: #8b949e; font-style: italic; padding: 40px 0; font-size: 16px; }
+        .no-opinion { text-align: center; color: #8b949e; font-style: italic; padding: 40px 0; }
         .loading { color: #8b949e; font-style: italic; animation: blink 1.5s infinite; }
-        
-        /* 🔒 보안 자물쇠 입력 폼 스타일 */
-        .secure-lock-box {
-            max-width: 400px; margin: 100px auto; text-align: center;
-            background-color: #161b22; border: 1px solid #21262d; border-radius: 12px; padding: 40px 24px;
-        }
-        .secure-input {
-            width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #30363d;
-            background-color: #0d1117; color: #fff; font-size: 16px; text-align: center; margin-bottom: 16px;
-        }
-        .secure-btn {
-            width: 100%; padding: 12px; background-color: #38bdf8; border: none; border-radius: 6px;
-            color: #fff; font-size: 15px; font-weight: 700; cursor: pointer;
-        }
-        .secure-btn:hover { background-color: #0ea5e9; }
-        
-        /* 🗂️ 아카이브 서식 스타일 */
+        .secure-lock-box { max-width: 400px; margin: 100px auto; text-align: center; background-color: #161b22; border: 1px solid #21262d; border-radius: 12px; padding: 40px 24px; }
+        .secure-input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #30363d; background-color: #0d1117; color: #fff; font-size: 16px; text-align: center; margin-bottom: 16px; }
+        .secure-btn { width: 100%; padding: 12px; background-color: #38bdf8; border: none; border-radius: 6px; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; }
         .archive-list { display: flex; flex-direction: column; gap: 12px; }
-        .archive-item {
-            background-color: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 16px 20px;
-        }
+        .archive-item { background-color: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 16px 20px; }
         .archive-date { font-weight: 700; color: #38bdf8; margin-bottom: 8px; font-size: 14px; }
         .archive-body { font-size: 14px; color: #c9d1d9; white-space: pre-wrap; }
+        @keyframes blink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
 
-        @keyframes blink { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        /* 🚨 국내 개장 전 핵심 체크 위젯 스타일 */
+        .pm-container { background: #161b22; border: 1px solid #21262d; border-radius: 12px; padding: 16px; margin-bottom: 24px; border-top: 4px solid #fab387; }
+        .pm-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+        .pm-header h4 { margin: 0; color: #fab387; font-size: 14px; font-weight: 700; letter-spacing: 0.5px; }
+        .pm-pulse { width: 8px; height: 8px; background-color: #fab387; border-radius: 50%; display: inline-block; animation: pm-blink 1.8s infinite; }
+        .pm-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .pm-card { background: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+        .pm-label { font-size: 11px; color: #8b949e; font-weight: 600; }
+        .pm-values { display: flex; justify-content: space-between; align-items: baseline; }
+        .pm-current { font-size: 18px; font-weight: 700; color: #ffffff; }
+        .pm-change { font-size: 12px; font-weight: 600; }
+        .status-up { color: #f38ba8 !important; }
+        .status-down { color: #89b4fa !important; }
+        .status-flat { color: #8b949e !important; }
+        @keyframes pm-blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+        @media (max-width: 768px) { .pm-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -166,10 +106,40 @@
                 </div>
                 <div class="header-sub">
                     <br>
-                    ⚠️ 아래 의견은 AI 가 작성한 내용이며, 구체적인 시황 분석 및 운용 전략 제시는 MARKET INTEL 탭을 사용해주세요. (업데이트 시간 KST 08:50)<br>
+                    ⚠️ 아래 의견은 AI 가 작성한 내용이며, 구체적인 시황 분석 및 운용 전략 제시는 MARKET INTEL 탭을 사용해주세요. (업데이트 시간 KST 08:50~08:55)<br>
                     ⚠️ 우측 상단의 신호등을 확인해주세요. 금일 자료가 정상 반영되면 🟢초록불, 미반영 상태면 🔴빨간불이 표시됩니다.
                 </div>
             </header>
+
+            <div class="pm-container">
+                <div class="pm-header">
+                    <span class="pm-pulse"></span>
+                    <h4>🚨 DOMESTIC PRE-MARKET (국내 개장 전 체크)</h4>
+                </div>
+                <div class="pm-grid">
+                    <div class="pm-card">
+                        <span class="pm-label">KOSPI 전일 종가</span>
+                        <div class="pm-values">
+                            <span id="kospi-current" class="pm-current">--</span>
+                            <span id="kospi-change" class="pm-change">--</span>
+                        </div>
+                    </div>
+                    <div class="pm-card">
+                        <span class="pm-label">VKOSPI (한국 변동성)</span>
+                        <div class="pm-values">
+                            <span id="vkospi-current" class="pm-current">--</span>
+                            <span id="vkospi-change" class="pm-change">--</span>
+                        </div>
+                    </div>
+                    <div class="pm-card">
+                        <span class="pm-label">코스피 야간선물 종가</span>
+                        <div class="pm-values">
+                            <span id="ksfut-current" class="pm-current">--</span>
+                            <span id="ksfut-change" class="pm-change">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div class="accordion-section">
                 <button class="accordion-header" onclick="toggleAccordion('market-dropdown', this)">
@@ -264,7 +234,6 @@
     </div>
 
     <script>
-        // 🔒 보안 인증 스크립트
         function checkAuth() {
             const inputPw = document.getElementById('password-field').value;
             if(inputPw === "1234") {
@@ -359,12 +328,51 @@
             return val.startsWith('-') ? "badge down" : "badge up";
         }
 
-async function fetchAllData() {
+        // 🚨 국내 프리마켓 JSON 데이터를 분석하여 렌더링하고 색상을 입히는 엔진
+        function renderPreMarketData(jsonDataString) {
+            try {
+                if (!jsonDataString) return;
+                const data = JSON.parse(jsonDataString);
+                
+                const mappings = {
+                    kospi: { currentId: 'kospi-current', changeId: 'kospi-change' },
+                    vkospi: { currentId: 'vkospi-current', changeId: 'vkospi-change' },
+                    ksfut: { currentId: 'ksfut-current', changeId: 'ksfut-change' }
+                };
+
+                Object.keys(mappings).forEach(key => {
+                    if (data[key]) {
+                        const target = data[key];
+                        const currentEl = document.getElementById(mappings[key].currentId);
+                        const changeEl = document.getElementById(mappings[key].changeId);
+                        
+                        currentEl.innerText = target.current || '--';
+                        const changeText = `${target.chg || ''} (${target.chg_pct || ''})`;
+                        changeEl.innerText = changeText;
+                        
+                        changeEl.className = 'pm-change'; // 스타일 초기화
+                        
+                        if (target.chg && target.chg.includes('+')) {
+                            changeEl.classList.add('status-up');
+                            changeEl.innerText = '▲ ' + changeText.replace('+', '');
+                        } else if (target.chg && target.chg.includes('-')) {
+                            changeEl.classList.add('status-down');
+                            changeEl.innerText = '▼ ' + changeText.replace('-', '');
+                        } else {
+                            changeEl.classList.add('status-flat');
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error("국내 장전 프리마켓 데이터 파싱 오류:", error);
+            }
+        }
+
+        async function fetchAllData() {
             const urlDaily = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=0&tqx=out:json`;
             const urlIntel = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=1681828616&tqx=out:json`;
 
             try {
-                // 1. 데일리 시황 및 CITI 마켓 데이터 통합 연동
                 const resDaily = await fetch(urlDaily);
                 const textDaily = await resDaily.text();
                 const jsonDaily = JSON.parse(textDaily.substring(textDaily.indexOf('{'), textDaily.lastIndexOf('}') + 1));
@@ -380,7 +388,11 @@ async function fetchAllData() {
                     document.getElementById('live-update-date').innerText = `최종 업데이트: ${dailyDateInfo ? dailyDateInfo.display : '날짜 없음'}`;
                     updateStatusLight('live-status-light', dailyDateInfo);
 
-                    // 마켓 데이터 파싱 (8대 핵심 모니터링)
+                    // 🚨 구글 시트 F열 (index 5)에서 GAS-제미나이가 꽂아준 프리마켓용 JSON 데이터를 읽어와 렌더링
+                    if (lastRow.c[5] && lastRow.c[5].v) {
+                        renderPreMarketData(lastRow.c[5].v);
+                    }
+
                     try {
                         let rawJsonString = lastRow.c[4] ? lastRow.c[4].v : "[]";
                         let marketDataArray = JSON.parse(rawJsonString);
@@ -402,16 +414,13 @@ async function fetchAllData() {
                         console.error("마켓 JSON 데이터 파싱 실패:", jsonErr);
                     }
 
-                    // ⚡ [반영] 데이터 바인딩 완료 후 Daily Markets Monitor 아코디언 메뉴 디폴트 오픈(활성화)
                     const mktDropdown = document.getElementById('market-dropdown');
                     if (mktDropdown) {
                         mktDropdown.classList.add('open');
-                        // 아코디언 화살표(▼) 회전 동기화를 위해 헤더 버튼에도 open 클래스 부여
                         const accHeader = document.querySelector('.accordion-header');
                         if (accHeader) accHeader.classList.add('open');
                     }
 
-                    // 🗂️ FX WEEKLY 탭의 하단 보관소 아카이브 컴포넌트 실시간 빌드업
                     let archiveHtml = "";
                     for (let i = globalDailyRows.length - 1; i >= 0; i--) {
                         let currentRow = globalDailyRows[i];
@@ -430,7 +439,6 @@ async function fetchAllData() {
                     document.getElementById('fx-archive-container').innerHTML = archiveHtml || `<div style="text-align:center; color:#8b949e; padding:30px;">아카이브에 저장된 외환 데이터가 존재하지 않습니다.</div>`;
                 }
 
-                // 2. Market Intel 파트 연동
                 const resIntel = await fetch(urlIntel);
                 const textIntel = await resIntel.text();
                 const jsonIntel = JSON.parse(textIntel.substring(textIntel.indexOf('{'), textIntel.lastIndexOf('}') + 1));
