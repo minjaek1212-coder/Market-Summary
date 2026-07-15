@@ -79,9 +79,17 @@
         .pm-values { display: flex; justify-content: space-between; align-items: baseline; }
         .pm-current { font-size: 18px; font-weight: 700; color: #ffffff; }
         .pm-change { font-size: 12px; font-weight: 600; }
-        .status-up { color: #f38ba8 !important; }
-        .status-down { color: #89b4fa !important; }
-        .status-flat { color: #8b949e !important; }
+.status-up { 
+            color: #a6e3a1 !important; /* 가시성 높은 파스텔 초록 */
+            font-weight: 700;
+        }     
+        .status-down { 
+            color: #f38ba8 !important; /* 가시성 높은 파스텔 빨강 */
+            font-weight: 700;
+        }   
+        .status-flat { 
+            color: #8b949e !important; /* 변동 없음 그레이 */
+        }
         @keyframes pm-blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
         @media (max-width: 768px) { .pm-grid { grid-template-columns: 1fr; } }
     </style>
@@ -328,7 +336,7 @@
             return val.startsWith('-') ? "badge down" : "badge up";
         }
 
-        // 🚨 국내 프리마켓 JSON 데이터를 분석하여 렌더링하고 색상을 입히는 엔진
+// 🚨 국내 프리마켓 JSON 데이터를 분석하여 기호를 강제화하고 색상을 입히는 개선된 렌더링 엔진
         function renderPreMarketData(jsonDataString) {
             try {
                 if (!jsonDataString) return;
@@ -346,20 +354,34 @@
                         const currentEl = document.getElementById(mappings[key].currentId);
                         const changeEl = document.getElementById(mappings[key].changeId);
                         
+                        // 현재가 주입
                         currentEl.innerText = target.current || '--';
-                        const changeText = `${target.chg || ''} (${target.chg_pct || ''})`;
-                        changeEl.innerText = changeText;
                         
+                        let rawChg = (target.chg || '').trim();
+                        let rawPct = (target.chg_pct || '').trim();
+                        
+                        // 부호 검증 및 강제 부여 로직 (+, - 기호 누락 방지)
+                        if (!rawChg.startsWith('+') && !rawChg.startsWith('-') && rawChg !== '0' && rawChg !== '0.00' && rawChg !== '') {
+                            rawChg = '+' + rawChg;
+                        }
+                        if (!rawPct.startsWith('+') && !rawPct.startsWith('-') && rawPct !== '0%' && rawPct !== '0.00%' && rawPct !== '') {
+                            rawPct = '+' + rawPct;
+                        }
+
+                        // 기호가 반영된 텍스트 조립
+                        const changeText = `${rawChg} (${rawPct})`;
                         changeEl.className = 'pm-change'; // 스타일 초기화
                         
-                        if (target.chg && target.chg.includes('+')) {
+                        // 색상 클래스 분기 및 기호에 따른 화살표 주입
+                        if (rawChg.startsWith('+')) {
                             changeEl.classList.add('status-up');
-                            changeEl.innerText = '▲ ' + changeText.replace('+', '');
-                        } else if (target.chg && target.chg.includes('-')) {
+                            changeEl.innerText = '▲ ' + changeText; // 초록색 + ▲ + 수치
+                        } else if (rawChg.startsWith('-')) {
                             changeEl.classList.add('status-down');
-                            changeEl.innerText = '▼ ' + changeText.replace('-', '');
+                            changeEl.innerText = '▼ ' + changeText; // 빨간색 + ▼ + 수치
                         } else {
                             changeEl.classList.add('status-flat');
+                            changeEl.innerText = changeText;        // 변동 없음 (그레이)
                         }
                     }
                 });
