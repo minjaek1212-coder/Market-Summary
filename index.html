@@ -370,7 +370,8 @@
                         }
 
                         // 기호가 반영된 텍스트 조립
-                        const changeText = `${rawChg} (${rawPct})`;
+                        // 기호가 반영된 텍스트 조립 (등락률 뒤에 % 추가)
+                        const changeText = `${rawChg} (${rawPct}%)`;
                         changeEl.className = 'pm-change'; // 스타일 초기화
                         
                         // 색상 클래스 분기 및 기호에 따른 화살표 주입
