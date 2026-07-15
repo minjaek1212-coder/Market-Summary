@@ -1,99 +1,486 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daily Market Summary Dashboard</title>
     <style>
-        *, *::before, *::after { box-sizing: border-box; }
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #0f1115; color: #e2e8f0; margin: 0; padding: 24px; line-height: 1.7;
+            background-color: #0f1115;
+            color: #e2e8f0;
+            margin: 0;
+            padding: 24px;
+            line-height: 1.7;
         }
-        .container { max-width: 1000px; margin: 0 auto; }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
         .navbar {
-            display: flex; gap: 8px; background-color: #161b22; border: 1px solid #21262d; border-radius: 8px;
-            padding: 6px; margin-bottom: 24px; position: sticky; top: 12px; z-index: 1000; box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            display: flex;
+            gap: 8px;
+            background-color: #161b22;
+            border: 1px solid #21262d;
+            border-radius: 8px;
+            padding: 6px;
+            margin-bottom: 24px;
+            position: sticky;
+            top: 12px;
+            z-index: 1000;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
         }
+
         .nav-btn {
-            background: none; border: none; color: #8b949e; padding: 10px 20px; font-size: 15px;
-            font-weight: 600; cursor: pointer; border-radius: 6px; transition: all 0.2s ease;
+            background: none;
+            border: none;
+            color: #8b949e;
+            padding: 10px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
         }
-        .nav-btn:hover { color: #ffffff; background-color: #21262d; }
-        .nav-btn.active { color: #ffffff; background-color: #38bdf8; border: 3px solid #ffffff; box-shadow: 0 0 15px rgba(255,255,255,0.5); }
-        .page { display: none; }
-        .page.active { display: block; }
-        header { border-bottom: 1px solid #1e293b; padding-bottom: 20px; margin-bottom: 24px; margin-top: 12px; }
-        .header-main { display: flex; justify-content: space-between; align-items: flex-end; }
-        header h1 { color: #ffffff; margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
-        .header-sub { margin-top: 10px; color: #94a3b8; font-size: 14px; line-height: 1.5; }
-        .date-container { display: flex; align-items: center; gap: 8px; }
-        .date { color: #ffffff; font-size: 14px; font-weight: 700; }
-        .status-light { width: 12px; height: 12px; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px rgba(0,0,0,0.5); }
-        .status-light.loading-light { background-color: #8b949e; }
-        .status-light.success-light { background-color: #10b981; box-shadow: 0 0 12px #10b981; } 
-        .status-light.danger-light { background-color: #ef4444; box-shadow: 0 0 12px #ef4444; }  
-        .accordion-section { background-color: #161b22; border: 1px solid #21262d; border-radius: 8px; margin-bottom: 24px; overflow: hidden; }
+
+        .nav-btn:hover {
+            color: #ffffff;
+            background-color: #21262d;
+        }
+
+        .nav-btn.active {
+            color: #ffffff;
+            background-color: #38bdf8;
+            border: 3px solid #ffffff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        header {
+            border-bottom: 1px solid #1e293b;
+            padding-bottom: 20px;
+            margin-bottom: 24px;
+            margin-top: 12px;
+        }
+
+        .header-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header-sub {
+            margin-top: 10px;
+            color: #94a3b8;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .date-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .date {
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .status-light {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .status-light.loading-light {
+            background-color: #8b949e;
+        }
+
+        .status-light.success-light {
+            background-color: #10b981;
+            box-shadow: 0 0 12px #10b981;
+        }
+
+        .status-light.danger-light {
+            background-color: #ef4444;
+            box-shadow: 0 0 12px #ef4444;
+        }
+
+        .accordion-section {
+            background-color: #161b22;
+            border: 1px solid #21262d;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
         .accordion-header {
-            width: 100%; background: #1f242c; border: none; padding: 14px 20px; color: #ffffff; font-size: 15px;
-            font-weight: 700; display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+            width: 100%;
+            background: #1f242c;
+            border: none;
+            padding: 14px 20px;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
         }
-        .accordion-icon { font-size: 12px; color: #38bdf8; transition: transform 0.2s ease; }
-        .accordion-content { display: none; padding: 20px; background-color: #161b22; border-top: 1px solid #21262d; overflow-x: auto; }
-        .accordion-content.open { display: block; }
-        .accordion-header.open .accordion-icon { transform: rotate(180deg); }
-        .market-table { width: 100%; border-collapse: collapse; text-align: right; font-size: 14px; min-width: 600px; }
-        .market-table th, .market-table td { padding: 10px 12px; border-bottom: 1px solid #21262d; }
-        .market-table th { color: #ffffff; font-weight: 700; font-size: 12px; }
-        .market-table td.asset-name { text-align: left; font-weight: 600; color: #38bdf8; }
-        .market-table td.asset-current { font-weight: 500; color: #ffffff; }
-        .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 13px; min-width: 75px; text-align: center; }
-        .badge.up { background-color: rgba(16,185,129,0.25); color: #10b981; }     
-        .badge.down { background-color: rgba(239,68,68,0.25); color: #ef4444; }    
-        .badge.neutral { background-color: #21262d; color: #8b949e; }
-        .card { background-color: #161b22; border: 1px solid #21262d; border-radius: 12px; padding: 24px; margin-bottom: 24px; border-top: 4px solid #38bdf8; }
-        .card h2 { margin-top: 0; margin-bottom: 20px; font-size: 22px; font-weight: 700; border-bottom: 1px solid #30363d; padding-bottom: 10px; color: #38bdf8; }
-        .market-text { background-color: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 24px; font-size: 15px; color: #c9d1d9; white-space: pre-wrap; }
-        .market-text strong { color: #ffffff; font-weight: 700; }
-        .intel-section-title { font-size: 18px; font-weight: 700; color: #38bdf8; margin-top: 28px; margin-bottom: 14px; padding-left: 10px; border-left: 4px solid #38bdf8; display: block; }
-        .intel-paragraph { margin: 0 0 12px 0; padding-left: 4px; text-align: justify; color: #c9d1d9; }
-        .no-opinion { text-align: center; color: #8b949e; font-style: italic; padding: 40px 0; }
-        .loading { color: #8b949e; font-style: italic; animation: blink 1.5s infinite; }
-        .secure-lock-box { max-width: 400px; margin: 100px auto; text-align: center; background-color: #161b22; border: 1px solid #21262d; border-radius: 12px; padding: 40px 24px; }
-        .secure-input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #30363d; background-color: #0d1117; color: #fff; font-size: 16px; text-align: center; margin-bottom: 16px; }
-        .secure-btn { width: 100%; padding: 12px; background-color: #38bdf8; border: none; border-radius: 6px; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; }
-        .archive-list { display: flex; flex-direction: column; gap: 12px; }
-        .archive-item { background-color: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 16px 20px; }
-        .archive-date { font-weight: 700; color: #38bdf8; margin-bottom: 8px; font-size: 14px; }
-        .archive-body { font-size: 14px; color: #c9d1d9; white-space: pre-wrap; }
-        @keyframes blink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+        .accordion-icon {
+            font-size: 12px;
+            color: #38bdf8;
+            transition: transform 0.2s ease;
+        }
+
+        .accordion-content {
+            display: none;
+            padding: 20px;
+            background-color: #161b22;
+            border-top: 1px solid #21262d;
+            overflow-x: auto;
+        }
+
+        .accordion-content.open {
+            display: block;
+        }
+
+        .accordion-header.open .accordion-icon {
+            transform: rotate(180deg);
+        }
+
+        .market-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: right;
+            font-size: 14px;
+            min-width: 600px;
+        }
+
+        .market-table th,
+        .market-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #21262d;
+        }
+
+        .market-table th {
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 12px;
+        }
+
+        .market-table td.asset-name {
+            text-align: left;
+            font-weight: 600;
+            color: #38bdf8;
+        }
+
+        .market-table td.asset-current {
+            font-weight: 500;
+            color: #ffffff;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 13px;
+            min-width: 75px;
+            text-align: center;
+        }
+
+        .badge.up {
+            background-color: rgba(16, 185, 129, 0.25);
+            color: #10b981;
+        }
+
+        .badge.down {
+            background-color: rgba(239, 68, 68, 0.25);
+            color: #ef4444;
+        }
+
+        .badge.neutral {
+            background-color: #21262d;
+            color: #8b949e;
+        }
+
+        .card {
+            background-color: #161b22;
+            border: 1px solid #21262d;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border-top: 4px solid #38bdf8;
+        }
+
+        .card h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 22px;
+            font-weight: 700;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 10px;
+            color: #38bdf8;
+        }
+
+        .market-text {
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 24px;
+            font-size: 15px;
+            color: #c9d1d9;
+            white-space: pre-wrap;
+        }
+
+        .market-text strong {
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .intel-section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #38bdf8;
+            margin-top: 28px;
+            margin-bottom: 14px;
+            padding-left: 10px;
+            border-left: 4px solid #38bdf8;
+            display: block;
+        }
+
+        .intel-paragraph {
+            margin: 0 0 12px 0;
+            padding-left: 4px;
+            text-align: justify;
+            color: #c9d1d9;
+        }
+
+        .no-opinion {
+            text-align: center;
+            color: #8b949e;
+            font-style: italic;
+            padding: 40px 0;
+        }
+
+        .loading {
+            color: #8b949e;
+            font-style: italic;
+            animation: blink 1.5s infinite;
+        }
+
+        .secure-lock-box {
+            max-width: 400px;
+            margin: 100px auto;
+            text-align: center;
+            background-color: #161b22;
+            border: 1px solid #21262d;
+            border-radius: 12px;
+            padding: 40px 24px;
+        }
+
+        .secure-input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+            background-color: #0d1117;
+            color: #fff;
+            font-size: 16px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .secure-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #38bdf8;
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .archive-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .archive-item {
+            background-color: #0d1117;
+            border: 1px solid #21262d;
+            border-radius: 8px;
+            padding: 16px 20px;
+        }
+
+        .archive-date {
+            font-weight: 700;
+            color: #38bdf8;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .archive-body {
+            font-size: 14px;
+            color: #c9d1d9;
+            white-space: pre-wrap;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
 
         /* 🚨 국내 개장 전 핵심 체크 위젯 스타일 */
-        .pm-container { background: #161b22; border: 1px solid #21262d; border-radius: 12px; padding: 16px; margin-bottom: 24px; border-top: 4px solid #fab387; }
-        .pm-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
-        .pm-header h4 { margin: 0; color: #fab387; font-size: 14px; font-weight: 700; letter-spacing: 0.5px; }
-        .pm-pulse { width: 8px; height: 8px; background-color: #fab387; border-radius: 50%; display: inline-block; animation: pm-blink 1.8s infinite; }
-        .pm-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .pm-card { background: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
-        .pm-label { font-size: 11px; color: #8b949e; font-weight: 600; }
-        .pm-values { display: flex; justify-content: space-between; align-items: baseline; }
-        .pm-current { font-size: 18px; font-weight: 700; color: #ffffff; }
-        .pm-change { font-size: 12px; font-weight: 600; }
-.status-up { 
-            color: #a6e3a1 !important; /* 가시성 높은 파스텔 초록 */
-            font-weight: 700;
-        }     
-        .status-down { 
-            color: #f38ba8 !important; /* 가시성 높은 파스텔 빨강 */
-            font-weight: 700;
-        }   
-        .status-flat { 
-            color: #8b949e !important; /* 변동 없음 그레이 */
+        .pm-container {
+            background: #161b22;
+            border: 1px solid #21262d;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            border-top: 4px solid #fab387;
         }
-        @keyframes pm-blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-        @media (max-width: 768px) { .pm-grid { grid-template-columns: 1fr; } }
+
+        .pm-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .pm-header h4 {
+            margin: 0;
+            color: #fab387;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .pm-pulse {
+            width: 8px;
+            height: 8px;
+            background-color: #fab387;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pm-blink 1.8s infinite;
+        }
+
+        .pm-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .pm-card {
+            background: #0d1117;
+            border: 1px solid #21262d;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .pm-label {
+            font-size: 11px;
+            color: #8b949e;
+            font-weight: 600;
+        }
+
+        .pm-values {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .pm-current {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .pm-change {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-up {
+            color: #a6e3a1 !important;
+            /* 가시성 높은 파스텔 초록 */
+            font-weight: 700;
+        }
+
+        .status-down {
+            color: #f38ba8 !important;
+            /* 가시성 높은 파스텔 빨강 */
+            font-weight: 700;
+        }
+
+        .status-flat {
+            color: #8b949e !important;
+            /* 변동 없음 그레이 */
+        }
+
+        @keyframes pm-blink {
+
+            0%,
+            100% {
+                opacity: 0.3;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .pm-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
+
 <body>
 
     <div class="container">
@@ -114,7 +501,8 @@
                 </div>
                 <div class="header-sub">
                     <br>
-                    ⚠️ 아래 의견은 AI 가 작성한 내용이며, 구체적인 시황 분석 및 운용 전략 제시는 Market Intel 탭을 사용해주세요. (업데이트 시간 KST 08:45~08:55)<br>
+                    ⚠️ 아래 의견은 AI 가 작성한 내용이며, 구체적인 시황 분석 및 운용 전략 제시는 Market Intel 탭을 사용해주세요. (업데이트 시간 KST
+                    08:45~08:55)<br>
                     ⚠️ 우측 상단의 신호등을 확인해주세요. 금일 자료가 정상 반영되면 🟢초록불, 미반영 상태면 🔴빨간불이 표시됩니다.
                 </div>
             </header>
@@ -167,17 +555,19 @@
                             </tr>
                         </thead>
                         <tbody id="market-table-body">
-                            <tr><td colspan="6" style="text-align:center; color:#8b949e;">데이터를 불러오는 중입니다...</td></tr>
+                            <tr>
+                                <td colspan="6" style="text-align:center; color:#8b949e;">데이터를 불러오는 중입니다...</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
-            
+
             <div class="card stock">
                 <h2>📊 주식</h2>
                 <div class="market-text" id="stock-market-content"><span class="loading">로딩 중...</span></div>
             </div>
-            
+
             <div class="card fx">
                 <h2>💵 환율</h2>
                 <div class="market-text" id="fx-market-content"><span class="loading">로딩 중...</span></div>
@@ -245,7 +635,7 @@
     <script>
         function checkAuth() {
             const inputPw = document.getElementById('password-field').value;
-            if(inputPw === "1234") {
+            if (inputPw === "1234") {
                 document.getElementById('secure-auth-box').style.display = "none";
                 document.getElementById('secure-content-box').style.display = "block";
             } else {
@@ -278,7 +668,7 @@
                     if (dateParts.length >= 3) {
                         actualDate = new Date(dateParts[0], dateParts[1], dateParts[2]);
                     }
-                } catch(e) { console.error(e); }
+                } catch (e) { console.error(e); }
             } else {
                 actualDate = new Date(dateVal);
             }
@@ -298,7 +688,7 @@
             const today = new Date();
             const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-            if (targetDateInfo.title === todayString) { lightEl.classList.add('success-light'); } 
+            if (targetDateInfo.title === todayString) { lightEl.classList.add('success-light'); }
             else { lightEl.classList.add('danger-light'); }
         }
 
@@ -316,11 +706,11 @@
                 let trimmed = line.trim();
                 if (!trimmed) return;
 
-                if (trimmed.startsWith('###') || trimmed.startsWith('1.') || trimmed.startsWith('2.') || trimmed.startsWith('3.') || trimmed.startsWith('4.') || 
+                if (trimmed.startsWith('###') || trimmed.startsWith('1.') || trimmed.startsWith('2.') || trimmed.startsWith('3.') || trimmed.startsWith('4.') ||
                     trimmed.startsWith('**###') || trimmed.startsWith('**1.') || trimmed.startsWith('**2.') || trimmed.startsWith('**3.') || trimmed.startsWith('**4.') ||
-                    trimmed === '주요 매크로 이벤트 및 시장 영향' || trimmed === '미국 주식시장 브리핑 (US Market Brief)' || 
+                    trimmed === '주요 매크로 이벤트 및 시장 영향' || trimmed === '미국 주식시장 브리핑 (US Market Brief)' ||
                     trimmed === 'TMT(기술/미디어/통신) 섹터 전문가 의견' || trimmed === 'US MKT INTEL VIEW & MONETIZATION MENU' ||
-                    trimmed === '**주요 매크로 이벤트 및 시장 영향**' || trimmed === '**미국 주식시장 브리핑 (US Market Brief)**' || 
+                    trimmed === '**주요 매크로 이벤트 및 시장 영향**' || trimmed === '**미국 주식시장 브리핑 (US Market Brief)**' ||
                     trimmed === '**TMT(기술/미디어/통신) 섹터 전문가 의견**' || trimmed === '**US MKT INTEL VIEW & MONETIZATION MENU**') {
                     let cleanTitle = trimmed.replace(/###/g, '').replace(/\*\"/g, '').replace(/\*\转/g, '').replace(/\*\*/g, '').trim();
                     htmlOutput += `<span class="intel-section-title">${cleanTitle}</span>`;
@@ -337,12 +727,12 @@
             return val.startsWith('-') ? "badge down" : "badge up";
         }
 
-// 🚨 국내 프리마켓 JSON 데이터를 분석하여 기호를 강제화하고 색상을 입히는 개선된 렌더링 엔진
+        // 🚨 국내 프리마켓 JSON 데이터를 분석하여 기호를 강제화하고 색상을 입히는 개선된 렌더링 엔진
         function renderPreMarketData(jsonDataString) {
             try {
                 if (!jsonDataString) return;
                 const data = JSON.parse(jsonDataString);
-                
+
                 const mappings = {
                     kospi: { currentId: 'kospi-current', changeId: 'kospi-change' },
                     vkospi: { currentId: 'vkospi-current', changeId: 'vkospi-change' },
@@ -354,13 +744,13 @@
                         const target = data[key];
                         const currentEl = document.getElementById(mappings[key].currentId);
                         const changeEl = document.getElementById(mappings[key].changeId);
-                        
+
                         // 현재가 주입
                         currentEl.innerText = target.current || '--';
-                        
+
                         let rawChg = (target.chg || '').trim();
                         let rawPct = (target.chg_pct || '').trim();
-                        
+
                         // 부호 검증 및 강제 부여 로직 (+, - 기호 누락 방지)
                         if (!rawChg.startsWith('+') && !rawChg.startsWith('-') && rawChg !== '0' && rawChg !== '0.00' && rawChg !== '') {
                             rawChg = '+' + rawChg;
@@ -373,7 +763,7 @@
                         // 기호가 반영된 텍스트 조립 (등락률 뒤에 % 추가)
                         const changeText = `${rawChg} (${rawPct}%)`;
                         changeEl.className = 'pm-change'; // 스타일 초기화
-                        
+
                         // 색상 클래스 분기 및 기호에 따른 화살표 주입
                         if (rawChg.startsWith('+')) {
                             changeEl.classList.add('status-up');
@@ -405,7 +795,7 @@
                 if (globalDailyRows && globalDailyRows.length > 0) {
                     const lastRow = globalDailyRows[globalDailyRows.length - 1];
                     let dailyDateInfo = parseAndFormatDate(lastRow.c[0] ? lastRow.c[0].v : null);
-                    
+
                     document.getElementById('stock-market-content').innerHTML = convertMarkdownToHTML(lastRow.c[1] ? lastRow.c[1].v : '내용 없음');
                     document.getElementById('macro-market-content').innerHTML = convertMarkdownToHTML(lastRow.c[2] ? lastRow.c[2].v : '내용 없음');
                     document.getElementById('fx-market-content').innerHTML = convertMarkdownToHTML(lastRow.c[3] ? lastRow.c[3].v : '내용 없음');
@@ -423,11 +813,33 @@
                         const targetAssets = ["Dow Jones", "S&P 500", "Nasdaq 100", "Hang Seng Index", "Nikkei 225", "WTI Crude Oil", "UST 10yr", "JGB 10yr"];
 
                         if (marketDataArray && marketDataArray.length > 0) {
+                            // 천 단위 콤마를 안전하게 추가하는 헬퍼 함수 정의
+                            const formatNumberWithComma = (val) => {
+                                if (!val) return '--';
+                                // 문자로 들어온 경우 공백을 제거하고 숫자만 추출
+                                let cleanVal = String(val).replace(/,/g, '').trim();
+                                let num = Number(cleanVal);
+                                // 변환 불가능한 일반 텍스트는 그대로 반환, 숫자면 콤마 포맷팅 적용
+                                return isNaN(num) ? val : num.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 });
+                            };
+
                             let tableHtml = "";
                             targetAssets.forEach(targetName => {
                                 const item = marketDataArray.find(d => d.name.trim().toLowerCase() === targetName.toLowerCase());
                                 if (item) {
-                                    tableHtml += `<tr><td class="asset-name">${item.name}</td><td class="asset-current">${item.current}</td><td><span class="${getBadgeClass(item.chg1d)}">${item.chg1d}</span></td><td><span class="${getBadgeClass(item.chg1d_pct)}">${item.chg1d_pct}%</span></td><td><span class="${getBadgeClass(item.chg1wk)}">${item.chg1wk}</span></td><td><span class="${getBadgeClass(item.chg1wk_pct)}">${item.chg1wk_pct}%</span></td></tr>`;
+                                    // CURRENT, 1D CHG, 1WK CHG 값들에 천 단위 콤마 처리 적용
+                                    const formattedCurrent = formatNumberWithComma(item.current);
+                                    const formattedChg1d = formatNumberWithComma(item.chg1d);
+                                    const formattedChg1wk = formatNumberWithComma(item.chg1wk);
+
+                                    tableHtml += `<tr>
+                <td class="asset-name">${item.name}</td>
+                <td class="asset-current">${formattedCurrent}</td>
+                <td><span class="${getBadgeClass(item.chg1d)}">${formattedChg1d}</span></td>
+                <td><span class="${getBadgeClass(item.chg1d_pct)}">${item.chg1d_pct}%</span></td>
+                <td><span class="${getBadgeClass(item.chg1wk)}">${formattedChg1wk}</span></td>
+                <td><span class="${getBadgeClass(item.chg1wk_pct)}">${item.chg1wk_pct}%</span></td>
+            </tr>`;
                                 }
                             });
                             document.getElementById('market-table-body').innerHTML = tableHtml;
@@ -450,8 +862,8 @@
                         let currentRow = globalDailyRows[i];
                         let archiveDateInfo = parseAndFormatDate(currentRow.c[0] ? currentRow.c[0].v : null);
                         let fxContent = currentRow.c[3] ? currentRow.c[3].v : "내용 없음";
-                        
-                        if(archiveDateInfo && fxContent !== "내용 없음") {
+
+                        if (archiveDateInfo && fxContent !== "내용 없음") {
                             archiveHtml += `
                                 <div class="archive-item">
                                     <div class="archive-date">📅 ${archiveDateInfo.display} FX 데일리 기록</div>
@@ -487,4 +899,5 @@
         window.onload = fetchAllData;
     </script>
 </body>
+
 </html>
