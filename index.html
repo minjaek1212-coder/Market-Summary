@@ -10,7 +10,7 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #0b0d11; /* 더 깊이감 있는 하이엔드 다크 배경 */
+            background-color: #0b0d11;
             color: #e2e8f0;
             margin: 0;
             padding: 24px;
@@ -23,7 +23,7 @@
             margin: 0 auto;
         }
 
-        /* 🌐 반투명 서리유리(Glassmorphism) 스티키 내비게이션 바 */
+        /* 🌐 Glassmorphism Sticky Nav */
         .navbar {
             display: flex;
             gap: 8px;
@@ -80,9 +80,9 @@
             align-items: flex-end;
         }
 
-        /* 메인 헤더 타이틀 그라데이션 포인트 */
+        /* 🔵 타이틀: 블루계열 단일 그라데이션 (#0284c7 ➔ #38bdf8) 및 이모티콘 제거 */
         header h1 {
-            background: linear-gradient(135deg, #ffffff 30%, #38bdf8 100%);
+            background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin: 0;
@@ -122,10 +122,10 @@
         }
 
         .status-light.loading-light { background-color: #8b949e; }
-        .status-light.success-light { background-color: #10b981; box-shadow: 0 0 10px #10b981; }
-        .status-light.danger-light { background-color: #ef4444; box-shadow: 0 0 10px #ef4444; }
+        .status-light.success-light { background-color: #a6e3a1; box-shadow: 0 0 10px #a6e3a1; }
+        .status-light.danger-light { background-color: #f38ba8; box-shadow: 0 0 10px #f38ba8; }
 
-        /* 🚨 PRE-MARKET INDICES 위젯 모던 스타일 */
+        /* PRE-MARKET INDICES 위젯 */
         .pm-container {
             background: #141820;
             border: 1px solid rgba(250, 179, 135, 0.25);
@@ -207,11 +207,12 @@
             font-weight: 700;
         }
 
+        /* 🎨 통합 상태 색상 코드 (파스텔 그린/레드 통일) */
         .status-up { color: #a6e3a1 !important; }
         .status-down { color: #f38ba8 !important; }
         .status-flat { color: #8b949e !important; }
 
-        /* 모던 아코디언 테이블 */
+        /* 아코디언 테이블 */
         .accordion-section {
             background-color: #141820;
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -278,6 +279,7 @@
         .market-table td.asset-name { text-align: left; font-weight: 700; color: #38bdf8; }
         .market-table td.asset-current { font-weight: 600; color: #ffffff; }
 
+        /* 🎨 DAILY MARKETS MONITOR 배지 색상 코드 (PRE-MARKET과 100% 통일) */
         .badge {
             display: inline-block;
             padding: 3px 10px;
@@ -288,11 +290,11 @@
             text-align: center;
         }
 
-        .badge.up { background-color: rgba(16, 185, 129, 0.18); color: #10b981; }
-        .badge.down { background-color: rgba(239, 68, 68, 0.18); color: #ef4444; }
+        .badge.up { background-color: rgba(166, 227, 161, 0.18); color: #a6e3a1; }
+        .badge.down { background-color: rgba(243, 139, 168, 0.18); color: #f38ba8; }
         .badge.neutral { background-color: rgba(255, 255, 255, 0.08); color: #8b949e; }
 
-        /* 🏛️ 1컬럼 모던 전면 와이드 시황 카드 */
+        /* 카드 시황 섹션 */
         .card {
             background-color: #141820;
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -333,7 +335,7 @@
 
         .market-text strong { color: #ffffff; font-weight: 700; }
 
-        /* Intel 탭 서식 및 기타 스타일 */
+        /* Intel 탭 서식 */
         .intel-section-title {
             font-size: 17.5px;
             font-weight: 800;
@@ -413,15 +415,15 @@
 
     <div class="container">
         <nav class="navbar">
-            <button class="nav-btn active" onclick="switchPage('daily-page', this)">📊 Daily Market</button>
-            <button class="nav-btn" onclick="switchPage('intel-page', this)">💡 Market Intel</button>
-            <button class="nav-btn" onclick="switchPage('fx-weekly-page', this)">💵 FX WEEKLY</button>
+            <button class="nav-btn active" onclick="switchPage('daily-page', this)">Daily Market</button>
+            <button class="nav-btn" onclick="switchPage('intel-page', this)">Market Intel</button>
+            <button class="nav-btn" onclick="switchPage('fx-weekly-page', this)">FX WEEKLY</button>
         </nav>
 
         <div id="daily-page" class="page active">
             <header>
                 <div class="header-main">
-                    <h1>📈 Market Assistant</h1>
+                    <h1>Market Assistant</h1>
                     <div class="date-container">
                         <div class="date" id="live-update-date">최종 업데이트: 로딩 중...</div>
                         <span class="status-light loading-light" id="live-status-light"></span>
@@ -437,7 +439,7 @@
             <div class="pm-container">
                 <div class="pm-header">
                     <span class="pm-pulse"></span>
-                    <h4>🚨 PRE-MARKET INDICES</h4>
+                    <h4>PRE-MARKET INDICES</h4>
                 </div>
                 <div class="pm-grid">
                     <div class="pm-card">
@@ -466,7 +468,7 @@
 
             <div class="accordion-section">
                 <button class="accordion-header" onclick="toggleAccordion('market-dropdown', this)">
-                    <span>🌐 Daily Markets Monitor</span>
+                    <span>Daily Markets Monitor</span>
                     <span class="accordion-icon" id="arrow-icon">▼</span>
                 </button>
                 <div class="accordion-content" id="market-dropdown">
@@ -490,19 +492,18 @@
                 </div>
             </div>
 
-            <!-- 1컬럼 전면 와이드 카드 시황 섹션 -->
             <div class="card stock">
-                <h2>📊 주식</h2>
+                <h2>주식</h2>
                 <div class="market-text" id="stock-market-content"><span class="loading">로딩 중...</span></div>
             </div>
 
             <div class="card fx">
-                <h2>💵 환율</h2>
+                <h2>환율</h2>
                 <div class="market-text" id="fx-market-content"><span class="loading">로딩 중...</span></div>
             </div>
 
             <div class="card macro">
-                <h2>💸 NEWS</h2>
+                <h2>NEWS</h2>
                 <div class="market-text" id="macro-market-content"><span class="loading">로딩 중...</span></div>
             </div>
         </div>
@@ -510,7 +511,7 @@
         <div id="intel-page" class="page">
             <header>
                 <div class="header-main">
-                    <h1>💡 Intel View & Monetization Menu</h1>
+                    <h1>Intel View & Monetization Menu</h1>
                     <div class="date-container">
                         <div class="date" id="intel-update-date">최종 업데이트: 로딩 중...</div>
                         <span class="status-light loading-light" id="intel-status-light"></span>
@@ -532,7 +533,7 @@
 
         <div id="fx-weekly-page" class="page">
             <div id="secure-auth-box" class="secure-lock-box">
-                <h2 style="color:#fff; border:none; margin-bottom:10px;">🔒 사내 보안 인증</h2>
+                <h2 style="color:#fff; border:none; margin-bottom:10px;">사내 보안 인증</h2>
                 <p style="color:#8b949e; font-size:14px; margin-bottom:24px;">해당 탭은 주간 보고서 출력 권한이 있는 트레이더 전용 페이지입니다.</p>
                 <input type="password" id="password-field" class="secure-input" placeholder="비밀번호 입력">
                 <button class="secure-btn" onclick="checkAuth()">인증하기</button>
@@ -541,7 +542,7 @@
             <div id="secure-content-box" style="display: none;">
                 <header>
                     <div class="header-main">
-                        <h1>💵 FX WEEKLY ARCHIVE</h1>
+                        <h1>FX WEEKLY ARCHIVE</h1>
                     </div>
                     <div class="header-sub">
                         <br>
@@ -550,7 +551,7 @@
                 </header>
 
                 <div class="archive-section">
-                    <h2 style="color: #10b981; border-color: rgba(255,255,255,0.08);">🗂️ Daily FX Archive (외환 시황 보관소)</h2>
+                    <h2 style="color: #a6e3a1; border-color: rgba(255,255,255,0.08);">Daily FX Archive (외환 시황 보관소)</h2>
                     <div class="archive-list" id="fx-archive-container">
                         <div style="text-align:center; color:#8b949e; padding:30px;">데이터를 조회하는 중입니다...</div>
                     </div>
@@ -655,7 +656,6 @@
             return val.startsWith('-') ? "badge down" : "badge up";
         }
 
-        // 🚨 국내 프리마켓 JSON 데이터를 분석하여 기호를 강제화하고 콤마 및 색상을 입히는 개선된 렌더링 엔진
         function renderPreMarketData(jsonDataString) {
             try {
                 if (!jsonDataString) return;
@@ -802,7 +802,7 @@
                         if (archiveDateInfo && fxContent !== "내용 없음") {
                             archiveHtml += `
                                 <div class="archive-item">
-                                    <div class="archive-date">📅 ${archiveDateInfo.display} FX 데일리 기록</div>
+                                    <div class="archive-date">${archiveDateInfo.display} FX 데일리 기록</div>
                                     <div class="archive-body">${convertMarkdownToHTML(fxContent)}</div>
                                 </div>
                             `;
