@@ -6,77 +6,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daily Market Summary Dashboard</title>
     <style>
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-        }
+        *, *::before, *::after { box-sizing: border-box; }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #0f1115;
+            background-color: #0b0d11; /* 더 깊이감 있는 하이엔드 다크 배경 */
             color: #e2e8f0;
             margin: 0;
             padding: 24px;
             line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1040px;
             margin: 0 auto;
         }
 
+        /* 🌐 반투명 서리유리(Glassmorphism) 스티키 내비게이션 바 */
         .navbar {
             display: flex;
             gap: 8px;
-            background-color: #161b22;
-            border: 1px solid #21262d;
-            border-radius: 8px;
-            padding: 6px;
-            margin-bottom: 24px;
+            background: rgba(22, 27, 34, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 8px;
+            margin-bottom: 28px;
             position: sticky;
             top: 12px;
             z-index: 1000;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
         }
 
         .nav-btn {
             background: none;
             border: none;
             color: #8b949e;
-            padding: 10px 20px;
-            font-size: 15px;
+            padding: 10px 22px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            border-radius: 6px;
-            transition: all 0.2s ease;
+            border-radius: 8px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .nav-btn:hover {
             color: #ffffff;
-            background-color: #21262d;
+            background-color: rgba(255, 255, 255, 0.06);
         }
 
         .nav-btn.active {
             color: #ffffff;
-            background-color: #38bdf8;
-            border: 3px solid #ffffff;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.35);
         }
 
-        .page {
-            display: none;
-        }
-
-        .page.active {
-            display: block;
-        }
+        .page { display: none; }
+        .page.active { display: block; }
 
         header {
-            border-bottom: 1px solid #1e293b;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             padding-bottom: 20px;
-            margin-bottom: 24px;
-            margin-top: 12px;
+            margin-bottom: 28px;
+            margin-top: 8px;
         }
 
         .header-main {
@@ -85,300 +80,60 @@
             align-items: flex-end;
         }
 
+        /* 메인 헤더 타이틀 그라데이션 포인트 */
         header h1 {
-            color: #ffffff;
+            background: linear-gradient(135deg, #ffffff 30%, #38bdf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             margin: 0;
-            font-size: 26px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.8px;
         }
 
         .header-sub {
-            margin-top: 10px;
+            margin-top: 12px;
             color: #94a3b8;
-            font-size: 14px;
-            line-height: 1.5;
+            font-size: 13.5px;
+            line-height: 1.6;
         }
 
         .date-container {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            background: rgba(22, 27, 34, 0.6);
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .date {
-            color: #ffffff;
-            font-size: 14px;
+            color: #f1f5f9;
+            font-size: 13.5px;
             font-weight: 700;
         }
 
         .status-light {
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             display: inline-block;
-            box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
         }
 
-        .status-light.loading-light {
-            background-color: #8b949e;
-        }
+        .status-light.loading-light { background-color: #8b949e; }
+        .status-light.success-light { background-color: #10b981; box-shadow: 0 0 10px #10b981; }
+        .status-light.danger-light { background-color: #ef4444; box-shadow: 0 0 10px #ef4444; }
 
-        .status-light.success-light {
-            background-color: #10b981;
-            box-shadow: 0 0 12px #10b981;
-        }
-
-        .status-light.danger-light {
-            background-color: #ef4444;
-            box-shadow: 0 0 12px #ef4444;
-        }
-
-        .accordion-section {
-            background-color: #161b22;
-            border: 1px solid #21262d;
-            border-radius: 8px;
-            margin-bottom: 24px;
-            overflow: hidden;
-        }
-
-        .accordion-header {
-            width: 100%;
-            background: #1f242c;
-            border: none;
-            padding: 14px 20px;
-            color: #ffffff;
-            font-size: 15px;
-            font-weight: 700;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        .accordion-icon {
-            font-size: 12px;
-            color: #38bdf8;
-            transition: transform 0.2s ease;
-        }
-
-        .accordion-content {
-            display: none;
-            padding: 20px;
-            background-color: #161b22;
-            border-top: 1px solid #21262d;
-            overflow-x: auto;
-        }
-
-        .accordion-content.open {
-            display: block;
-        }
-
-        .accordion-header.open .accordion-icon {
-            transform: rotate(180deg);
-        }
-
-        .market-table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: right;
-            font-size: 14px;
-            min-width: 600px;
-        }
-
-        .market-table th,
-        .market-table td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #21262d;
-        }
-
-        .market-table th {
-            color: #ffffff;
-            font-weight: 700;
-            font-size: 12px;
-        }
-
-        .market-table td.asset-name {
-            text-align: left;
-            font-weight: 600;
-            color: #38bdf8;
-        }
-
-        .market-table td.asset-current {
-            font-weight: 500;
-            color: #ffffff;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-weight: 600;
-            font-size: 13px;
-            min-width: 75px;
-            text-align: center;
-        }
-
-        .badge.up {
-            background-color: rgba(16, 185, 129, 0.25);
-            color: #10b981;
-        }
-
-        .badge.down {
-            background-color: rgba(239, 68, 68, 0.25);
-            color: #ef4444;
-        }
-
-        .badge.neutral {
-            background-color: #21262d;
-            color: #8b949e;
-        }
-
-        .card {
-            background-color: #161b22;
-            border: 1px solid #21262d;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 24px;
-            border-top: 4px solid #38bdf8;
-        }
-
-        .card h2 {
-            margin-top: 0;
-            margin-bottom: 20px;
-            font-size: 22px;
-            font-weight: 700;
-            border-bottom: 1px solid #30363d;
-            padding-bottom: 10px;
-            color: #38bdf8;
-        }
-
-        .market-text {
-            background-color: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            padding: 24px;
-            font-size: 15px;
-            color: #c9d1d9;
-            white-space: pre-wrap;
-        }
-
-        .market-text strong {
-            color: #ffffff;
-            font-weight: 700;
-        }
-
-        .intel-section-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #38bdf8;
-            margin-top: 28px;
-            margin-bottom: 14px;
-            padding-left: 10px;
-            border-left: 4px solid #38bdf8;
-            display: block;
-        }
-
-        .intel-paragraph {
-            margin: 0 0 12px 0;
-            padding-left: 4px;
-            text-align: justify;
-            color: #c9d1d9;
-        }
-
-        .no-opinion {
-            text-align: center;
-            color: #8b949e;
-            font-style: italic;
-            padding: 40px 0;
-        }
-
-        .loading {
-            color: #8b949e;
-            font-style: italic;
-            animation: blink 1.5s infinite;
-        }
-
-        .secure-lock-box {
-            max-width: 400px;
-            margin: 100px auto;
-            text-align: center;
-            background-color: #161b22;
-            border: 1px solid #21262d;
-            border-radius: 12px;
-            padding: 40px 24px;
-        }
-
-        .secure-input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid #30363d;
-            background-color: #0d1117;
-            color: #fff;
-            font-size: 16px;
-            text-align: center;
-            margin-bottom: 16px;
-        }
-
-        .secure-btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #38bdf8;
-            border: none;
-            border-radius: 6px;
-            color: #fff;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .archive-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .archive-item {
-            background-color: #0d1117;
-            border: 1px solid #21262d;
-            border-radius: 8px;
-            padding: 16px 20px;
-        }
-
-        .archive-date {
-            font-weight: 700;
-            color: #38bdf8;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        .archive-body {
-            font-size: 14px;
-            color: #c9d1d9;
-            white-space: pre-wrap;
-        }
-
-        @keyframes blink {
-
-            0%,
-            100% {
-                opacity: 0.5;
-            }
-
-            50% {
-                opacity: 1;
-            }
-        }
-
-        /* 🚨 국내 개장 전 핵심 체크 위젯 스타일 */
+        /* 🚨 PRE-MARKET INDICES 위젯 모던 스타일 */
         .pm-container {
-            background: #161b22;
-            border: 1px solid #21262d;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 24px;
-            border-top: 4px solid #fab387;
+            background: #141820;
+            border: 1px solid rgba(250, 179, 135, 0.25);
+            border-radius: 14px;
+            padding: 18px 20px;
+            margin-bottom: 28px;
+            position: relative;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
         }
 
         .pm-header {
@@ -391,9 +146,9 @@
         .pm-header h4 {
             margin: 0;
             color: #fab387;
-            font-size: 14px;
+            font-size: 13.5px;
             font-weight: 700;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.6px;
         }
 
         .pm-pulse {
@@ -402,27 +157,34 @@
             background-color: #fab387;
             border-radius: 50%;
             display: inline-block;
+            box-shadow: 0 0 8px #fab387;
             animation: pm-blink 1.8s infinite;
         }
 
         .pm-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
+            gap: 14px;
         }
 
         .pm-card {
-            background: #0d1117;
-            border: 1px solid #21262d;
-            border-radius: 8px;
-            padding: 12px;
+            background: #0b0e14;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 14px 16px;
             display: flex;
             flex-direction: column;
             gap: 6px;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .pm-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(250, 179, 135, 0.4);
         }
 
         .pm-label {
-            font-size: 11px;
+            font-size: 11.5px;
             color: #8b949e;
             font-weight: 600;
         }
@@ -434,49 +196,215 @@
         }
 
         .pm-current {
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 19px;
+            font-weight: 800;
             color: #ffffff;
+            letter-spacing: -0.5px;
         }
 
         .pm-change {
+            font-size: 12.5px;
+            font-weight: 700;
+        }
+
+        .status-up { color: #a6e3a1 !important; }
+        .status-down { color: #f38ba8 !important; }
+        .status-flat { color: #8b949e !important; }
+
+        /* 모던 아코디언 테이블 */
+        .accordion-section {
+            background-color: #141820;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            margin-bottom: 28px;
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            width: 100%;
+            background: #191e28;
+            border: none;
+            padding: 16px 22px;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .accordion-header:hover { background: #202634; }
+
+        .accordion-icon {
             font-size: 12px;
-            font-weight: 600;
+            color: #38bdf8;
+            transition: transform 0.25s ease;
         }
 
-        .status-up {
-            color: #a6e3a1 !important;
-            /* 가시성 높은 파스텔 초록 */
+        .accordion-content {
+            display: none;
+            padding: 20px 22px;
+            background-color: #141820;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            overflow-x: auto;
+        }
+
+        .accordion-content.open { display: block; }
+        .accordion-header.open .accordion-icon { transform: rotate(180deg); }
+
+        .market-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: right;
+            font-size: 13.5px;
+            min-width: 600px;
+        }
+
+        .market-table th, .market-table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .market-table th {
+            color: #94a3b8;
             font-weight: 700;
+            font-size: 11.5px;
+            letter-spacing: 0.5px;
         }
 
-        .status-down {
-            color: #f38ba8 !important;
-            /* 가시성 높은 파스텔 빨강 */
+        .market-table tr:hover td { background-color: rgba(255, 255, 255, 0.02); }
+        .market-table td.asset-name { text-align: left; font-weight: 700; color: #38bdf8; }
+        .market-table td.asset-current { font-weight: 600; color: #ffffff; }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 6px;
             font-weight: 700;
+            font-size: 12.5px;
+            min-width: 75px;
+            text-align: center;
         }
 
-        .status-flat {
-            color: #8b949e !important;
-            /* 변동 없음 그레이 */
+        .badge.up { background-color: rgba(16, 185, 129, 0.18); color: #10b981; }
+        .badge.down { background-color: rgba(239, 68, 68, 0.18); color: #ef4444; }
+        .badge.neutral { background-color: rgba(255, 255, 255, 0.08); color: #8b949e; }
+
+        /* 🏛️ 1컬럼 모던 전면 와이드 시황 카드 */
+        .card {
+            background-color: #141820;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 26px;
+            margin-bottom: 28px;
+            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         }
 
-        @keyframes pm-blink {
-
-            0%,
-            100% {
-                opacity: 0.3;
-            }
-
-            50% {
-                opacity: 1;
-            }
+        .card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(56, 189, 248, 0.35);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
+
+        .card h2 {
+            margin-top: 0;
+            margin-bottom: 18px;
+            font-size: 20px;
+            font-weight: 800;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 12px;
+            color: #38bdf8;
+            letter-spacing: -0.3px;
+        }
+
+        .market-text {
+            background-color: #0b0e14;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 24px;
+            font-size: 15px;
+            color: #cbd5e1;
+            white-space: pre-wrap;
+            line-height: 1.8;
+        }
+
+        .market-text strong { color: #ffffff; font-weight: 700; }
+
+        /* Intel 탭 서식 및 기타 스타일 */
+        .intel-section-title {
+            font-size: 17.5px;
+            font-weight: 800;
+            color: #38bdf8;
+            margin-top: 28px;
+            margin-bottom: 14px;
+            padding-left: 12px;
+            border-left: 4px solid #38bdf8;
+            display: block;
+        }
+
+        .intel-paragraph {
+            margin: 0 0 14px 0;
+            padding-left: 4px;
+            text-align: justify;
+            color: #cbd5e1;
+        }
+
+        .no-opinion { text-align: center; color: #8b949e; font-style: italic; padding: 40px 0; }
+        .loading { color: #8b949e; font-style: italic; animation: blink 1.5s infinite; }
+
+        .secure-lock-box {
+            max-width: 400px;
+            margin: 100px auto;
+            text-align: center;
+            background-color: #141820;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 40px 24px;
+        }
+
+        .secure-input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: #0b0e14;
+            color: #fff;
+            font-size: 16px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .secure-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .archive-list { display: flex; flex-direction: column; gap: 14px; }
+        .archive-item {
+            background-color: #0b0e14;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 18px 22px;
+        }
+
+        .archive-date { font-weight: 700; color: #38bdf8; margin-bottom: 8px; font-size: 14px; }
+        .archive-body { font-size: 14px; color: #cbd5e1; white-space: pre-wrap; }
+
+        @keyframes pm-blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+        @keyframes blink { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 
         @media (max-width: 768px) {
-            .pm-grid {
-                grid-template-columns: 1fr;
-            }
+            .pm-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -501,8 +429,7 @@
                 </div>
                 <div class="header-sub">
                     <br>
-                    ⚠️ 아래 의견은 AI 가 작성한 내용이며, 구체적인 시황 분석 및 운용 전략 제시는 Market Intel 탭을 사용해주세요. (업데이트 시간 KST
-                    08:45~08:55)<br>
+                    ⚠️ 아래 의견은 AI 가 작성한 내용이며, 구체적인 시황 분석 및 운용 전략 제시는 Market Intel 탭을 사용해주세요. (업데이트 시간 KST 08:45~08:55)<br>
                     ⚠️ 우측 상단의 신호등을 확인해주세요. 금일 자료가 정상 반영되면 🟢초록불, 미반영 상태면 🔴빨간불이 표시됩니다.
                 </div>
             </header>
@@ -563,6 +490,7 @@
                 </div>
             </div>
 
+            <!-- 1컬럼 전면 와이드 카드 시황 섹션 -->
             <div class="card stock">
                 <h2>📊 주식</h2>
                 <div class="market-text" id="stock-market-content"><span class="loading">로딩 중...</span></div>
@@ -622,7 +550,7 @@
                 </header>
 
                 <div class="archive-section">
-                    <h2 style="color: #10b981; border-color: #21262d;">🗂️ Daily FX Archive (외환 시황 보관소)</h2>
+                    <h2 style="color: #10b981; border-color: rgba(255,255,255,0.08);">🗂️ Daily FX Archive (외환 시황 보관소)</h2>
                     <div class="archive-list" id="fx-archive-container">
                         <div style="text-align:center; color:#8b949e; padding:30px;">데이터를 조회하는 중입니다...</div>
                     </div>
@@ -727,7 +655,7 @@
             return val.startsWith('-') ? "badge down" : "badge up";
         }
 
-// 🚨 국내 프리마켓 JSON 데이터를 분석하여 기호를 강제화하고 콤마 및 색상을 입히는 개선된 렌더링 엔진
+        // 🚨 국내 프리마켓 JSON 데이터를 분석하여 기호를 강제화하고 콤마 및 색상을 입히는 개선된 렌더링 엔진
         function renderPreMarketData(jsonDataString) {
             try {
                 if (!jsonDataString) return;
@@ -739,10 +667,8 @@
                     ksfut: { currentId: 'ksfut-current', changeId: 'ksfut-change' }
                 };
 
-                // 천 단위 콤마를 안전하게 추가하는 내부 헬퍼 함수
                 const formatWithComma = (val) => {
                     if (!val) return '';
-                    // 기호(+, -)와 퍼센트(%)를 임시로 떼어내고 숫자만 추출합니다.
                     let sign = '';
                     if (val.startsWith('+')) { sign = '+'; val = val.substring(1); }
                     else if (val.startsWith('-')) { sign = '-'; val = val.substring(1); }
@@ -753,7 +679,6 @@
                     let cleanVal = val.replace(/,/g, '').trim(); 
                     let num = Number(cleanVal);
                     
-                    // 숫자 변환이 가능하면 콤마를 찍고 원래 있던 기호와 단위를 다시 붙여줍니다.
                     return isNaN(num) ? val : sign + num.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 }) + suffix;
                 };
 
@@ -763,13 +688,11 @@
                         const currentEl = document.getElementById(mappings[key].currentId);
                         const changeEl = document.getElementById(mappings[key].changeId);
                         
-                        // 현재가에 콤마 처리 적용
                         currentEl.innerText = formatWithComma(target.current) || '--';
                         
                         let rawChg = (target.chg || '').trim();
                         let rawPct = (target.chg_pct || '').trim();
                         
-                        // 부호 검증 및 강제 부여 로직 (+, - 기호 누락 방지)
                         if (!rawChg.startsWith('+') && !rawChg.startsWith('-') && rawChg !== '0' && rawChg !== '0.00' && rawChg !== '') {
                             rawChg = '+' + rawChg;
                         }
@@ -777,23 +700,21 @@
                             rawPct = '+' + rawPct;
                         }
 
-                        // 각각의 값에 콤마 처리 적용 후 텍스트 조립 (%는 이전 답변 규칙대로 괄호 안에 들어가도록 유지)
                         const formattedChg = formatWithComma(rawChg);
                         const formattedPct = formatWithComma(rawPct);
                         const changeText = `${formattedChg} (${formattedPct}%)`;
                         
-                        changeEl.className = 'pm-change'; // 스타일 초기화
+                        changeEl.className = 'pm-change';
                         
-                        // 색상 클래스 분기 및 기호에 따른 화살표 주입
                         if (rawChg.startsWith('+')) {
                             changeEl.classList.add('status-up');
-                            changeEl.innerText = '▲ ' + changeText; // 초록색 + ▲ + 수치
+                            changeEl.innerText = '▲ ' + changeText;
                         } else if (rawChg.startsWith('-')) {
                             changeEl.classList.add('status-down');
-                            changeEl.innerText = '▼ ' + changeText; // 빨간색 + ▼ + 수치
+                            changeEl.innerText = '▼ ' + changeText;
                         } else {
                             changeEl.classList.add('status-flat');
-                            changeEl.innerText = changeText;        // 변동 없음 (그레이)
+                            changeEl.innerText = changeText;
                         }
                     }
                 });
@@ -822,7 +743,6 @@
                     document.getElementById('live-update-date').innerText = `최종 업데이트: ${dailyDateInfo ? dailyDateInfo.display : '날짜 없음'}`;
                     updateStatusLight('live-status-light', dailyDateInfo);
 
-                    // 🚨 구글 시트 F열 (index 5)에서 GAS-제미나이가 꽂아준 프리마켓용 JSON 데이터를 읽어와 렌더링
                     if (lastRow.c[5] && lastRow.c[5].v) {
                         renderPreMarketData(lastRow.c[5].v);
                     }
@@ -833,13 +753,10 @@
                         const targetAssets = ["Dow Jones", "S&P 500", "Nasdaq 100", "Hang Seng Index", "Nikkei 225", "WTI Crude Oil", "UST 10yr", "JGB 10yr"];
 
                         if (marketDataArray && marketDataArray.length > 0) {
-                            // 천 단위 콤마를 안전하게 추가하는 헬퍼 함수 정의
                             const formatNumberWithComma = (val) => {
                                 if (!val) return '--';
-                                // 문자로 들어온 경우 공백을 제거하고 숫자만 추출
                                 let cleanVal = String(val).replace(/,/g, '').trim();
                                 let num = Number(cleanVal);
-                                // 변환 불가능한 일반 텍스트는 그대로 반환, 숫자면 콤마 포맷팅 적용
                                 return isNaN(num) ? val : num.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 });
                             };
 
@@ -847,7 +764,6 @@
                             targetAssets.forEach(targetName => {
                                 const item = marketDataArray.find(d => d.name.trim().toLowerCase() === targetName.toLowerCase());
                                 if (item) {
-                                    // CURRENT, 1D CHG, 1WK CHG 값들에 천 단위 콤마 처리 적용
                                     const formattedCurrent = formatNumberWithComma(item.current);
                                     const formattedChg1d = formatNumberWithComma(item.chg1d);
                                     const formattedChg1wk = formatNumberWithComma(item.chg1wk);
