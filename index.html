@@ -23,7 +23,8 @@
   --warn:#f0a15e; --warn-bg:#1a1610;
 }
 *,*::before,*::after{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 body{
   margin:0;background:var(--bg);color:var(--tx);
   font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
@@ -50,11 +51,23 @@ body{
 .head{padding:26px 0 20px;border-bottom:1px solid var(--line)}
 .eyebrow{font-size:11px;letter-spacing:.16em;color:var(--accent);font-weight:700;margin-bottom:8px}
 h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.03em}
-.meta{margin-top:11px;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--tx3)}
+.meta{margin-top:11px;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--tx3);flex-wrap:wrap}
+.cadence{color:var(--tx4);font-size:11.5px;letter-spacing:-.01em}
+.cadence::before{content:"\00B7";margin-right:8px}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--tx4);flex:0 0 auto}
 .dot.ok{background:var(--up)}
 .dot.no{background:var(--dn)}
 .note{margin-top:14px;font-size:12.5px;line-height:1.65;color:var(--tx4)}
+
+/* intel sections */
+.i-jump{display:flex;flex-wrap:wrap;gap:6px;padding:18px 0 2px;border-bottom:1px solid var(--line)}
+.i-jump a{font-size:11.5px;font-weight:600;color:var(--tx3);border:1px solid var(--line);border-radius:6px;padding:6px 10px;text-decoration:none;white-space:nowrap;transition:.15s}
+.i-jump a:hover{color:var(--tx);border-color:var(--accent)}
+.i-sec{padding:24px 0;border-bottom:1px solid var(--line);scroll-margin-top:64px}
+.i-sec:last-child{border-bottom:none}
+.i-t{display:flex;align-items:baseline;gap:10px;margin-bottom:14px}
+.i-no{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.08em;flex:0 0 auto}
+.i-name{font-size:15.5px;font-weight:700;color:var(--tx);letter-spacing:-.02em;line-height:1.45;word-break:keep-all}
 
 /* section */
 .sec{padding:20px 0;border-bottom:1px solid var(--line)}
@@ -137,10 +150,10 @@ h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.03em}
   <div class="head">
     <div class="eyebrow">PRE-MARKET</div>
     <h1>Market Assistant</h1>
-    <div class="meta"><span class="dot" id="d-dot"></span><span id="d-date">불러오는 중…</span></div>
-    <div class="note">
-      아래 시황은 AI가 작성한 요약임. 구체적인 분석과 운용 전략은 Market Intel 탭 참고.<br>
-      매일 08:45~08:55(KST) 갱신되며, 반영 완료 시 위 표시등이 초록으로 바뀜.
+    <div class="meta">
+      <span class="dot" id="d-dot"></span>
+      <span id="d-date">불러오는 중…</span>
+      <span class="cadence">매일 08:45~08:55(KST) 업데이트</span>
     </div>
   </div>
 
@@ -260,6 +273,15 @@ document.getElementById('pw').addEventListener('keydown', function(e){
 });
 
 /* ---------- 숫자 / 날짜 ---------- */
+/* 소수점 자릿수 — 기본 2자리.
+   특정 종목만 다르게 하려면 아래에 추가하세요.
+   예) 국채 금리를 3자리로: { 'UST 10yr': 3, 'JGB 10yr': 3 } */
+var DECIMALS = 2;
+var DECIMALS_BY_ASSET = {};
+function decFor(name){
+  return (DECIMALS_BY_ASSET[name] !== undefined) ? DECIMALS_BY_ASSET[name] : DECIMALS;
+}
+
 function toNum(v){
   if (v === null || v === undefined) return NaN;
   if (typeof v === 'number') return isFinite(v) ? v : NaN;
@@ -268,16 +290,18 @@ function toNum(v){
   var n = Number(s);
   return isFinite(n) ? n : NaN;
 }
-function fmt(v, max){
+function fmt(v, d){
   var n = toNum(v);
   if (isNaN(n)) return '--';
-  return n.toLocaleString('ko-KR', { minimumFractionDigits:0, maximumFractionDigits: max === undefined ? 3 : max });
+  d = (d === undefined) ? DECIMALS : d;
+  return n.toLocaleString('ko-KR', { minimumFractionDigits:d, maximumFractionDigits:d });
 }
-function fmtSigned(v, max){
+function fmtSigned(v, d){
   var n = toNum(v);
   if (isNaN(n)) return '--';
+  d = (d === undefined) ? DECIMALS : d;
   var sign = n > 0 ? '+' : (n < 0 ? '\u2212' : '');
-  return sign + Math.abs(n).toLocaleString('ko-KR', { minimumFractionDigits:0, maximumFractionDigits: max === undefined ? 2 : max });
+  return sign + Math.abs(n).toLocaleString('ko-KR', { minimumFractionDigits:d, maximumFractionDigits:d });
 }
 function dirClass(v){
   var n = toNum(v);
@@ -312,11 +336,12 @@ function setLight(id, d){
   var el = document.getElementById(id);
   el.className = 'dot' + (d && daysAgo(d) === 0 ? ' ok' : ' no');
 }
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 function md(t){
   if (t === null || t === undefined || String(t).trim() === '') return '내용 없음';
-  return String(t)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+  return esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
 }
 
 /* ---------- 렌더 ---------- */
@@ -367,38 +392,100 @@ function renderMarkets(raw){
       if (arr[i] && arr[i].name && String(arr[i].name).trim().toLowerCase() === name.toLowerCase()){ it = arr[i]; break; }
     }
     if (!it) return;
+    var d = decFor(name);
     html += '<tr>' +
       '<td>' + it.name + '</td>' +
-      '<td class="num">' + fmt(it.current) + '</td>' +
-      '<td class="num col-abs ' + dirClass(it.chg1d) + '">' + fmtSigned(it.chg1d) + '</td>' +
+      '<td class="num">' + fmt(it.current, d) + '</td>' +
+      '<td class="num col-abs ' + dirClass(it.chg1d) + '">' + fmtSigned(it.chg1d, d) + '</td>' +
       '<td class="num ' + dirClass(it.chg1d_pct) + '">' + fmtSigned(it.chg1d_pct) + '%</td>' +
-      '<td class="num col-abs ' + dirClass(it.chg1wk) + '">' + fmtSigned(it.chg1wk) + '</td>' +
+      '<td class="num col-abs ' + dirClass(it.chg1wk) + '">' + fmtSigned(it.chg1wk, d) + '</td>' +
       '<td class="num ' + dirClass(it.chg1wk_pct) + '">' + fmtSigned(it.chg1wk_pct) + '%</td>' +
     '</tr>';
   });
   tb.innerHTML = html || '<tr><td colspan="6" class="empty">일치하는 종목이 없습니다.</td></tr>';
 }
 
+/* Market Intel 보고서의 고정 5개 섹션.
+   앞뒤에 #, **, [ ] 가 붙거나 띄어쓰기가 달라도 인식됩니다. */
+var INTEL_SECTIONS = [
+  { label:'매크로',     match:'주요 매크로 이벤트' },
+  { label:'미국 증시',  match:'미국 주식시장 브리핑' },
+  { label:'TMT',        match:'TMT' },
+  { label:'Intel View', match:'INTEL VIEW' },
+  { label:'대처 전략',  match:'대처 전략' }
+];
+
+function normHead(s){
+  return String(s)
+    .replace(/^#{1,6}\s*/, '')
+    .replace(/\*\*/g, '')
+    .replace(/[\[\]]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+function matchSection(line){
+  var t = normHead(line);
+  if (!t || t.length > 70) return -1;
+  var up = t.toUpperCase();
+  for (var i = 0; i < INTEL_SECTIONS.length; i++){
+    if (up.indexOf(INTEL_SECTIONS[i].match.toUpperCase()) >= 0) return i;
+  }
+  return -1;
+}
+function bodyHtml(lines){
+  var h = '';
+  lines.forEach(function(t){
+    if (!t) return;
+    var isSub = /^#{1,6}\s/.test(t) || /^\*\*[^*]+\*\*$/.test(t);
+    if (isSub) h += '<div class="i-h">' + esc(normHead(t)) + '</div>';
+    else       h += '<p class="i-p">' + md(t) + '</p>';
+  });
+  return h || '<p class="i-p" style="color:var(--tx4)">내용 없음</p>';
+}
+
 function renderIntel(text){
-  if (!text || !String(text).trim()) return '<div class="i-p" style="color:var(--tx4)">금일 등록된 의견이 없습니다.</div>';
-  var out = '';
+  if (!text || !String(text).trim())
+    return '<p class="i-p" style="color:var(--tx4)">등록된 의견이 없습니다.</p>';
+
+  var blocks = [], intro = [], cur = null;
+
   String(text).split('\n').forEach(function(line){
     var t = line.trim();
     if (!t) return;
-
-    var isHead = false;
-    if (/^#{1,6}\s*/.test(t)) isHead = true;
-    else if (/^\*\*[^*]+\*\*$/.test(t)) isHead = true;
-    else if (/^\d+[.)]\s/.test(t) && t.length < 60) isHead = true;
-
-    var clean = t.replace(/^#{1,6}\s*/, '').replace(/^\*\*|\*\*$/g, '').trim();
-    if (isHead){
-      out += '<div class="i-h">' + md(clean).replace(/<\/?b>/g,'') + '</div>';
+    var m = matchSection(t);
+    if (m >= 0){
+      cur = { idx:m, title:normHead(t), lines:[] };
+      blocks.push(cur);
+    } else if (cur){
+      cur.lines.push(t);
     } else {
-      out += '<p class="i-p">' + md(t) + '</p>';
+      intro.push(t);
     }
   });
-  return out;
+
+  // 섹션 제목을 하나도 못 찾으면 글이 사라지지 않도록 통째로 표시
+  if (!blocks.length) return bodyHtml(intro);
+
+  var jump = '<div class="i-jump">';
+  blocks.forEach(function(b, i){
+    jump += '<a href="#is-' + i + '">' + INTEL_SECTIONS[b.idx].label + '</a>';
+  });
+  jump += '</div>';
+
+  var out = '';
+  if (intro.length) out += '<div class="i-sec">' + bodyHtml(intro) + '</div>';
+
+  blocks.forEach(function(b, i){
+    out += '<section class="i-sec" id="is-' + i + '">' +
+      '<div class="i-t">' +
+        '<span class="i-no">' + String(i + 1).padStart(2, '0') + '</span>' +
+        '<span class="i-name">' + esc(b.title) + '</span>' +
+      '</div>' +
+      bodyHtml(b.lines) +
+    '</section>';
+  });
+
+  return jump + out;
 }
 
 function staleBanner(d, what){
