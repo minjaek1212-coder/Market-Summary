@@ -1,913 +1,513 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="robots" content="noindex, nofollow">
-    <meta name="theme-color" content="#0b0d11">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Market Assistant">
-    <meta name="format-detection" content="telephone=no">
-    <title>Daily Market Summary Dashboard</title>
-    <style>
-        *, *::before, *::after { box-sizing: border-box; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0a0c10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Market">
+<meta name="format-detection" content="telephone=no">
+<title>Market Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0c10; --line:#1c212b; --line-soft:#14181f; --panel:#0e1117;
+  --tx:#e8ecf3; --tx2:#c9d1dc; --tx3:#7c8798; --tx4:#5b6472;
+  --accent:#5c94ff;
+  --up:#4ade80; --dn:#ff6b81; --flat:#7c8798;
+  --warn:#f0a15e; --warn-bg:#1a1610;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--bg);color:var(--tx);
+  font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;
+  padding:0 0 56px;
+}
+.num{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.wrap{max-width:760px;margin:0 auto;padding:0 20px}
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #0b0d11;
-            color: #e2e8f0;
-            margin: 0;
-            padding: 24px;
-            line-height: 1.7;
-            -webkit-font-smoothing: antialiased;
-        }
+/* nav */
+.nav{position:sticky;top:0;z-index:50;background:rgba(10,12,16,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav-in{max-width:760px;margin:0 auto;padding:0 20px;display:flex;gap:2px}
+.nav button{
+  flex:0 0 auto;background:none;border:none;border-bottom:2px solid transparent;
+  color:var(--tx4);font-family:inherit;font-size:13.5px;font-weight:600;
+  padding:15px 14px 13px;cursor:pointer;letter-spacing:-.01em;transition:color .15s
+}
+.nav button:hover{color:var(--tx2)}
+.nav button.on{color:var(--tx);border-bottom-color:var(--accent)}
+.page{display:none}
+.page.on{display:block}
 
-        .container {
-            max-width: 1040px;
-            margin: 0 auto;
-        }
+/* header */
+.head{padding:26px 0 20px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:11px;letter-spacing:.16em;color:var(--accent);font-weight:700;margin-bottom:8px}
+h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.03em}
+.meta{margin-top:11px;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--tx3)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--tx4);flex:0 0 auto}
+.dot.ok{background:var(--up)}
+.dot.no{background:var(--dn)}
+.note{margin-top:14px;font-size:12.5px;line-height:1.65;color:var(--tx4)}
 
-        /* 🌐 Glassmorphism Sticky Nav */
-        .navbar {
-            display: flex;
-            gap: 8px;
-            background: rgba(22, 27, 34, 0.75);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            padding: 8px;
-            margin-bottom: 28px;
-            position: sticky;
-            top: 12px;
-            z-index: 1000;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-        }
+/* section */
+.sec{padding:20px 0;border-bottom:1px solid var(--line)}
+.sec:last-child{border-bottom:none}
+.sec-h{font-size:11px;letter-spacing:.14em;color:var(--tx4);font-weight:700;margin-bottom:14px}
 
-        .nav-btn {
-            background: none;
-            border: none;
-            color: #8b949e;
-            padding: 10px 22px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+/* index rows */
+.row{display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--line-soft)}
+.row:last-child{border-bottom:none}
+.nm{font-size:14px;font-weight:600;color:var(--tx2)}
+.nm i{display:block;font-style:normal;font-size:10.5px;color:var(--tx4);font-weight:500;margin-top:3px;letter-spacing:.02em}
+.val{text-align:right;white-space:nowrap}
+.px{font-size:17px;font-weight:500;letter-spacing:-.01em}
+.ch{font-size:12px;margin-top:3px}
+.up{color:var(--up)}
+.dn{color:var(--dn)}
+.flat{color:var(--flat)}
 
-        .nav-btn:hover {
-            color: #ffffff;
-            background-color: rgba(255, 255, 255, 0.06);
-        }
+/* table */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:right;font-size:10px;letter-spacing:.1em;color:var(--tx4);font-weight:700;padding:0 0 9px}
+.tbl th:first-child{text-align:left}
+.tbl td{text-align:right;padding:9px 0;border-top:1px solid var(--line-soft)}
+.tbl td:first-child{text-align:left;color:var(--tx2);font-weight:600;font-size:12.5px}
+.tbl .empty{text-align:center;color:var(--tx4);padding:22px 0}
 
-        .nav-btn.active {
-            color: #ffffff;
-            background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.35);
-        }
+/* prose */
+.body{font-size:14.5px;line-height:1.85;color:#b7c0cc;white-space:pre-wrap;word-break:keep-all}
+.body b,.body strong{color:#fff;font-weight:600}
+.stale{margin:0 0 14px;padding:10px 13px;border-left:2px solid var(--warn);background:var(--warn-bg);font-size:12.5px;color:#e0b183;line-height:1.55}
+.err{color:var(--dn);font-size:13.5px}
+.loading{color:var(--tx4);font-style:italic;animation:bl 1.5s infinite}
+@keyframes bl{0%,100%{opacity:.4}50%{opacity:1}}
 
-        .page { display: none; }
-        .page.active { display: block; }
+/* intel */
+.i-h{font-size:16px;font-weight:700;color:var(--tx);margin:26px 0 12px;padding-left:11px;border-left:2px solid var(--accent);line-height:1.5}
+.i-h:first-child{margin-top:0}
+.i-p{margin:0 0 12px;color:#b7c0cc;font-size:14.5px;line-height:1.85;word-break:keep-all}
+.i-p b{color:#fff;font-weight:600}
 
-        header {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            padding-bottom: 20px;
-            margin-bottom: 28px;
-            margin-top: 8px;
-        }
+/* lock */
+.lock{max-width:360px;margin:70px auto;text-align:center;border:1px solid var(--line);border-radius:12px;padding:34px 24px}
+.lock h2{margin:0 0 8px;font-size:17px;font-weight:700}
+.lock p{margin:0 0 22px;font-size:13px;color:var(--tx4);line-height:1.6}
+.lock input{width:100%;padding:11px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--tx);font-family:inherit;font-size:15px;text-align:center;margin-bottom:12px}
+.lock input:focus{outline:none;border-color:var(--accent)}
+.lock button{width:100%;padding:11px;background:var(--accent);border:none;border-radius:8px;color:#04122e;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.lock .msg{margin:12px 0 0;font-size:12.5px;color:var(--dn);min-height:16px}
 
-        .header-main {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-        }
+/* archive */
+.arc{border-bottom:1px solid var(--line-soft);padding:16px 0}
+.arc:last-child{border-bottom:none}
+.arc-d{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:7px;letter-spacing:.02em}
+.arc-b{font-size:13.5px;line-height:1.8;color:#b0b9c5;white-space:pre-wrap;word-break:keep-all}
+.arc-b b{color:var(--tx);font-weight:600}
 
-        /* 🔵 타이틀: 블루계열 단일 그라데이션 (#0284c7 ➔ #38bdf8) 및 이모티콘 제거 */
-        header h1 {
-            background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin: 0;
-            font-size: 28px;
-            font-weight: 800;
-            letter-spacing: -0.8px;
-        }
-
-        .header-sub {
-            margin-top: 12px;
-            color: #94a3b8;
-            font-size: 13.5px;
-            line-height: 1.6;
-        }
-
-        .date-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(22, 27, 34, 0.6);
-            padding: 6px 14px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .date {
-            color: #f1f5f9;
-            font-size: 13.5px;
-            font-weight: 700;
-        }
-
-        .status-light {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-
-        .status-light.loading-light { background-color: #8b949e; }
-        .status-light.success-light { background-color: #a6e3a1; box-shadow: 0 0 10px #a6e3a1; }
-        .status-light.danger-light { background-color: #f38ba8; box-shadow: 0 0 10px #f38ba8; }
-
-        /* PRE-MARKET INDICES 위젯 */
-        .pm-container {
-            background: #141820;
-            border: 1px solid rgba(250, 179, 135, 0.25);
-            border-radius: 14px;
-            padding: 18px 20px;
-            margin-bottom: 28px;
-            position: relative;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-        }
-
-        .pm-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 14px;
-        }
-
-        .pm-header h4 {
-            margin: 0;
-            color: #fab387;
-            font-size: 13.5px;
-            font-weight: 700;
-            letter-spacing: 0.6px;
-        }
-
-        .pm-pulse {
-            width: 8px;
-            height: 8px;
-            background-color: #fab387;
-            border-radius: 50%;
-            display: inline-block;
-            box-shadow: 0 0 8px #fab387;
-            animation: pm-blink 1.8s infinite;
-        }
-
-        .pm-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 14px;
-        }
-
-        .pm-card {
-            background: #0b0e14;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            padding: 14px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            transition: transform 0.2s ease, border-color 0.2s ease;
-        }
-
-        .pm-card:hover {
-            transform: translateY(-2px);
-            border-color: rgba(250, 179, 135, 0.4);
-        }
-
-        .pm-label {
-            font-size: 11.5px;
-            color: #8b949e;
-            font-weight: 600;
-        }
-
-        .pm-values {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-        }
-
-        .pm-current {
-            font-size: 19px;
-            font-weight: 800;
-            color: #ffffff;
-            letter-spacing: -0.5px;
-        }
-
-        .pm-change {
-            font-size: 12.5px;
-            font-weight: 700;
-        }
-
-        /* 🎨 통합 상태 색상 코드 (파스텔 그린/레드 통일) */
-        .status-up { color: #a6e3a1 !important; }
-        .status-down { color: #f38ba8 !important; }
-        .status-flat { color: #8b949e !important; }
-
-        /* 아코디언 테이블 */
-        .accordion-section {
-            background-color: #141820;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 14px;
-            margin-bottom: 28px;
-            overflow: hidden;
-        }
-
-        .accordion-header {
-            width: 100%;
-            background: #191e28;
-            border: none;
-            padding: 16px 22px;
-            color: #ffffff;
-            font-size: 15px;
-            font-weight: 700;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: background 0.2s ease;
-        }
-
-        .accordion-header:hover { background: #202634; }
-
-        .accordion-icon {
-            font-size: 12px;
-            color: #38bdf8;
-            transition: transform 0.25s ease;
-        }
-
-        .accordion-content {
-            display: none;
-            padding: 20px 22px;
-            background-color: #141820;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-            overflow-x: auto;
-        }
-
-        .accordion-content.open { display: block; }
-        .accordion-header.open .accordion-icon { transform: rotate(180deg); }
-
-        .market-table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: right;
-            font-size: 13.5px;
-            min-width: 600px;
-        }
-
-        .market-table th, .market-table td {
-            padding: 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .market-table th {
-            color: #94a3b8;
-            font-weight: 700;
-            font-size: 11.5px;
-            letter-spacing: 0.5px;
-        }
-
-        .market-table tr:hover td { background-color: rgba(255, 255, 255, 0.02); }
-        .market-table td.asset-name { text-align: left; font-weight: 700; color: #38bdf8; }
-        .market-table td.asset-current { font-weight: 600; color: #ffffff; }
-
-        /* 🎨 DAILY MARKETS MONITOR 배지 색상 코드 (PRE-MARKET과 100% 통일) */
-        .badge {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 6px;
-            font-weight: 700;
-            font-size: 12.5px;
-            min-width: 75px;
-            text-align: center;
-        }
-
-        .badge.up { background-color: rgba(166, 227, 161, 0.18); color: #a6e3a1; }
-        .badge.down { background-color: rgba(243, 139, 168, 0.18); color: #f38ba8; }
-        .badge.neutral { background-color: rgba(255, 255, 255, 0.08); color: #8b949e; }
-
-        /* 카드 시황 섹션 */
-        .card {
-            background-color: #141820;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 26px;
-            margin-bottom: 28px;
-            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        .card:hover {
-            transform: translateY(-2px);
-            border-color: rgba(56, 189, 248, 0.35);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .card h2 {
-            margin-top: 0;
-            margin-bottom: 18px;
-            font-size: 20px;
-            font-weight: 800;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            padding-bottom: 12px;
-            color: #38bdf8;
-            letter-spacing: -0.3px;
-        }
-
-        .market-text {
-            background-color: #0b0e14;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 24px;
-            font-size: 15px;
-            color: #cbd5e1;
-            white-space: pre-wrap;
-            line-height: 1.8;
-        }
-
-        .market-text strong { color: #ffffff; font-weight: 700; }
-
-        /* Intel 탭 서식 */
-        .intel-section-title {
-            font-size: 17.5px;
-            font-weight: 800;
-            color: #38bdf8;
-            margin-top: 28px;
-            margin-bottom: 14px;
-            padding-left: 12px;
-            border-left: 4px solid #38bdf8;
-            display: block;
-        }
-
-        .intel-paragraph {
-            margin: 0 0 14px 0;
-            padding-left: 4px;
-            text-align: justify;
-            color: #cbd5e1;
-        }
-
-        .no-opinion { text-align: center; color: #8b949e; font-style: italic; padding: 40px 0; }
-        .loading { color: #8b949e; font-style: italic; animation: blink 1.5s infinite; }
-
-        .secure-lock-box {
-            max-width: 400px;
-            margin: 100px auto;
-            text-align: center;
-            background-color: #141820;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 40px 24px;
-        }
-
-        .secure-input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background-color: #0b0e14;
-            color: #fff;
-            font-size: 16px;
-            text-align: center;
-            margin-bottom: 16px;
-        }
-
-        .secure-btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
-            border: none;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .archive-list { display: flex; flex-direction: column; gap: 14px; }
-        .archive-item {
-            background-color: #0b0e14;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 12px;
-            padding: 18px 22px;
-        }
-
-        .archive-date { font-weight: 700; color: #38bdf8; margin-bottom: 8px; font-size: 14px; }
-        .archive-body { font-size: 14px; color: #cbd5e1; white-space: pre-wrap; }
-
-        @keyframes pm-blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-        @keyframes blink { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
-
-        /* ===== 모바일 대응 (출근길 폰 조회용) ===== */
-        @media (max-width: 768px) {
-            body { padding: 14px; padding-bottom: 40px; }
-
-            .pm-grid { grid-template-columns: 1fr; }
-
-            .navbar { gap: 4px; padding: 6px; top: 8px; margin-bottom: 20px; }
-            .nav-btn {
-                flex: 1;
-                padding: 10px 4px;
-                font-size: 12.5px;
-                text-align: center;
-                white-space: nowrap;
-            }
-
-            .header-main { flex-direction: column; align-items: flex-start; gap: 12px; }
-            header { padding-bottom: 16px; margin-bottom: 20px; }
-            header h1 { font-size: 21px; letter-spacing: -0.4px; }
-            .header-sub { font-size: 12.5px; }
-            .date-container { padding: 5px 12px; }
-            .date { font-size: 12.5px; }
-
-            .pm-container { padding: 14px 16px; margin-bottom: 20px; }
-            .pm-current { font-size: 18px; }
-
-            .accordion-section { margin-bottom: 20px; }
-            .accordion-header { padding: 14px 16px; font-size: 14px; }
-            .accordion-content { padding: 14px; }
-
-            .card { padding: 18px; border-radius: 14px; margin-bottom: 20px; }
-            .card h2 { font-size: 17px; margin-bottom: 14px; }
-            .market-text { padding: 16px; font-size: 14.5px; }
-
-            .intel-section-title { font-size: 16px; margin-top: 22px; }
-            /* 좁은 화면에서 양쪽정렬은 단어 사이가 벌어져 가독성이 떨어짐 */
-            .intel-paragraph { text-align: left; }
-
-            .secure-lock-box { margin: 48px auto; padding: 28px 20px; }
-            .archive-item { padding: 14px 16px; }
-
-            /* 터치 기기에서는 hover가 탭 후 고착되므로 이동 효과 제거 */
-            .card:hover, .pm-card:hover { transform: none; }
-        }
-    </style>
+@media (max-width:560px){
+  body{font-size:14.5px}
+  .wrap,.nav-in{padding:0 15px}
+  .nav button{font-size:12.5px;padding:14px 9px 12px}
+  h1{font-size:21px}
+  .col-abs{display:none}
+  .tbl td:first-child{font-size:12px}
+  .tbl{font-size:12.5px}
+  .px{font-size:16px}
+  .lock{margin:48px auto}
+}
+</style>
 </head>
-
 <body>
 
-    <div class="container">
-        <nav class="navbar">
-            <button class="nav-btn active" onclick="switchPage('daily-page', this)">Daily Market</button>
-            <button class="nav-btn" onclick="switchPage('intel-page', this)">Market Intel</button>
-            <button class="nav-btn" onclick="switchPage('fx-weekly-page', this)">FX WEEKLY</button>
-        </nav>
+<nav class="nav"><div class="nav-in">
+  <button class="on" data-p="daily">Daily Market</button>
+  <button data-p="intel">Market Intel</button>
+  <button data-p="fx">FX Weekly</button>
+</div></nav>
 
-        <div id="daily-page" class="page active">
-            <header>
-                <div class="header-main">
-                    <h1>Market Assistant</h1>
-                    <div class="date-container">
-                        <div class="date" id="live-update-date">최종 업데이트: 로딩 중...</div>
-                        <span class="status-light loading-light" id="live-status-light"></span>
-                    </div>
-                </div>
-                <div class="header-sub">
-                    <br>
-                    ⚠️ 아래 의견은 AI 가 작성한 내용이며, 구체적인 시황 분석 및 운용 전략 제시는 Market Intel 탭을 사용해주세요. (업데이트 시간 KST 08:45~08:55)<br>
-                    ⚠️ 우측 상단의 신호등을 확인해주세요. 금일 자료가 정상 반영되면 🟢초록불, 미반영 상태면 🔴빨간불이 표시됩니다.
-                </div>
-            </header>
-
-            <div class="pm-container">
-                <div class="pm-header">
-                    <span class="pm-pulse"></span>
-                    <h4>PRE-MARKET INDICES</h4>
-                </div>
-                <div class="pm-grid">
-                    <div class="pm-card">
-                        <span class="pm-label">KOSPI 전일 종가</span>
-                        <div class="pm-values">
-                            <span id="kospi-current" class="pm-current">--</span>
-                            <span id="kospi-change" class="pm-change">--</span>
-                        </div>
-                    </div>
-                    <div class="pm-card">
-                        <span class="pm-label">VKOSPI (한국 변동성)</span>
-                        <div class="pm-values">
-                            <span id="vkospi-current" class="pm-current">--</span>
-                            <span id="vkospi-change" class="pm-change">--</span>
-                        </div>
-                    </div>
-                    <div class="pm-card">
-                        <span class="pm-label">코스피 야간선물 종가</span>
-                        <div class="pm-values">
-                            <span id="ksfut-current" class="pm-current">--</span>
-                            <span id="ksfut-change" class="pm-change">--</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-section">
-                <button class="accordion-header" onclick="toggleAccordion('market-dropdown', this)">
-                    <span>Daily Markets Monitor</span>
-                    <span class="accordion-icon" id="arrow-icon">▼</span>
-                </button>
-                <div class="accordion-content" id="market-dropdown">
-                    <table class="market-table">
-                        <thead>
-                            <tr>
-                                <th style="text-align: left;">MARKETS</th>
-                                <th>CURRENT</th>
-                                <th>1D CHG</th>
-                                <th>1D %CHG</th>
-                                <th>1WK CHG</th>
-                                <th>1WK %CHG</th>
-                            </tr>
-                        </thead>
-                        <tbody id="market-table-body">
-                            <tr>
-                                <td colspan="6" style="text-align:center; color:#8b949e;">데이터를 불러오는 중입니다...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="card stock">
-                <h2>주식</h2>
-                <div class="market-text" id="stock-market-content"><span class="loading">로딩 중...</span></div>
-            </div>
-
-            <div class="card fx">
-                <h2>환율</h2>
-                <div class="market-text" id="fx-market-content"><span class="loading">로딩 중...</span></div>
-            </div>
-
-            <div class="card macro">
-                <h2>NEWS</h2>
-                <div class="market-text" id="macro-market-content"><span class="loading">로딩 중...</span></div>
-            </div>
-        </div>
-
-        <div id="intel-page" class="page">
-            <header>
-                <div class="header-main">
-                    <h1>Intel View & Monetization Menu</h1>
-                    <div class="date-container">
-                        <div class="date" id="intel-update-date">최종 업데이트: 로딩 중...</div>
-                        <span class="status-light loading-light" id="intel-status-light"></span>
-                    </div>
-                </div>
-                <div class="header-sub">
-                    <br>
-                    ⚠️ Trading Desk 전문가들의 의견을 총합하여 현재 매크로 환경에 대한 분석 및 운용 전략을 제시합니다.<br>
-                    ⚠️ Market Intel은 주말, 공휴일, 휴가중에는 자료가 업데이트 되지 않습니다.
-                </div>
-            </header>
-            <div class="card intel">
-                <h2>Market Intel</h2>
-                <div class="market-text" id="intel-market-content">
-                    <span class="loading">최신 인텔리전스 보고서를 조회 중입니다...</span>
-                </div>
-            </div>
-        </div>
-
-        <div id="fx-weekly-page" class="page">
-            <div id="secure-auth-box" class="secure-lock-box">
-                <h2 style="color:#fff; border:none; margin-bottom:10px;">사내 보안 인증</h2>
-                <p style="color:#8b949e; font-size:14px; margin-bottom:24px;">해당 탭은 주간 보고서 출력 권한이 있는 트레이더 전용 페이지입니다.</p>
-                <input type="password" id="password-field" class="secure-input" placeholder="비밀번호 입력">
-                <button class="secure-btn" onclick="checkAuth()">인증하기</button>
-            </div>
-
-            <div id="secure-content-box" style="display: none;">
-                <header>
-                    <div class="header-main">
-                        <h1>FX WEEKLY ARCHIVE</h1>
-                    </div>
-                    <div class="header-sub">
-                        <br>
-                        구글 시트의 Daily FX 아카이브 데이터를 추적하여 과거 일자별 외환 시황 기록을 보관 및 모니터링합니다.
-                    </div>
-                </header>
-
-                <div class="archive-section">
-                    <h2 style="color: #a6e3a1; border-color: rgba(255,255,255,0.08);">Daily FX Archive (외환 시황 보관소)</h2>
-                    <div class="archive-list" id="fx-archive-container">
-                        <div style="text-align:center; color:#8b949e; padding:30px;">데이터를 조회하는 중입니다...</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+<!-- ================= DAILY ================= -->
+<div class="page on" id="p-daily"><div class="wrap">
+  <div class="head">
+    <div class="eyebrow">PRE-MARKET</div>
+    <h1>Market Assistant</h1>
+    <div class="meta"><span class="dot" id="d-dot"></span><span id="d-date">불러오는 중…</span></div>
+    <div class="note">
+      아래 시황은 AI가 작성한 요약임. 구체적인 분석과 운용 전략은 Market Intel 탭 참고.<br>
+      매일 08:45~08:55(KST) 갱신되며, 반영 완료 시 위 표시등이 초록으로 바뀜.
     </div>
+  </div>
 
-    <script>
-        function checkAuth() {
-            const inputPw = document.getElementById('password-field').value;
-            if (inputPw === "1234") {
-                document.getElementById('secure-auth-box').style.display = "none";
-                document.getElementById('secure-content-box').style.display = "block";
-            } else {
-                alert("비밀번호가 올바르지 않습니다. 다시 시도해 주세요.");
-            }
-        }
+  <div class="sec">
+    <div class="sec-h">국내 지표</div>
+    <div id="idx"><div class="loading">불러오는 중…</div></div>
+  </div>
 
-        function toggleAccordion(id, btn) {
-            const content = document.getElementById(id);
-            content.classList.toggle('open');
-            btn.classList.toggle('open');
-        }
+  <div class="sec">
+    <div class="sec-h">해외 마켓</div>
+    <table class="tbl">
+      <thead><tr>
+        <th>MARKET</th><th>CLOSE</th>
+        <th class="col-abs">1D</th><th>1D %</th>
+        <th class="col-abs">1W</th><th>1W %</th>
+      </tr></thead>
+      <tbody id="mkt"><tr><td colspan="6" class="empty">불러오는 중…</td></tr></tbody>
+    </table>
+  </div>
 
-        function switchPage(pageId, btn) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            btn.classList.add('active');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+  <div class="sec">
+    <div class="sec-h">주식</div>
+    <div class="body" id="c-stock"><span class="loading">불러오는 중…</span></div>
+  </div>
 
-        const sheetId = '1SBD-To57_OOvAnB3a4vmN9fURD0wZgIR_hXaoIZPLpc';
+  <div class="sec">
+    <div class="sec-h">환율</div>
+    <div class="body" id="c-fx"><span class="loading">불러오는 중…</span></div>
+  </div>
 
-        function parseAndFormatDate(dateVal) {
-            if (!dateVal) return null;
-            let actualDate;
-            if (typeof dateVal === 'string' && dateVal.startsWith('Date')) {
-                try {
-                    const dateParts = dateVal.match(/\d+/g).map(Number);
-                    if (dateParts.length >= 3) {
-                        actualDate = new Date(dateParts[0], dateParts[1], dateParts[2]);
-                    }
-                } catch (e) { console.error(e); }
-            } else {
-                actualDate = new Date(dateVal);
-            }
-            if (!actualDate || isNaN(actualDate.getTime())) return null;
-            const year = actualDate.getFullYear();
-            const month = String(actualDate.getMonth() + 1).padStart(2, '0');
-            const day = String(actualDate.getDate()).padStart(2, '0');
-            return { display: `${year}. ${month}. ${day}.`, title: `${year}-${month}-${day}`, rawObject: actualDate };
-        }
+  <div class="sec">
+    <div class="sec-h">NEWS</div>
+    <div class="body" id="c-news"><span class="loading">불러오는 중…</span></div>
+  </div>
+</div></div>
 
-        function updateStatusLight(elementId, targetDateInfo) {
-            const lightEl = document.getElementById(elementId);
-            if (!lightEl) return;
-            lightEl.classList.remove('loading-light', 'success-light', 'danger-light');
-            if (!targetDateInfo) { lightEl.classList.add('danger-light'); return; }
+<!-- ================= INTEL ================= -->
+<div class="page" id="p-intel"><div class="wrap">
+  <div class="head">
+    <div class="eyebrow">DESK VIEW</div>
+    <h1>Market Intel</h1>
+    <div class="meta"><span class="dot" id="i-dot"></span><span id="i-date">불러오는 중…</span></div>
+    <div class="note">
+      트레이딩 데스크 의견을 종합한 매크로 분석 및 운용 전략.<br>
+      주말·공휴일·휴가 기간에는 갱신되지 않음.
+    </div>
+  </div>
+  <div class="sec">
+    <div id="i-stale"></div>
+    <div id="i-body"><div class="loading">불러오는 중…</div></div>
+  </div>
+</div></div>
 
-            const today = new Date();
-            const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+<!-- ================= FX WEEKLY ================= -->
+<div class="page" id="p-fx"><div class="wrap">
+  <div class="lock" id="fx-lock">
+    <h2>인증이 필요합니다</h2>
+    <p>주간 보고서 열람 권한이 있는 사용자 전용 화면입니다.</p>
+    <input type="password" id="pw" placeholder="비밀번호" autocomplete="off">
+    <button id="pw-go">확인</button>
+    <p class="msg" id="pw-msg"></p>
+  </div>
 
-            if (targetDateInfo.title === todayString) { lightEl.classList.add('success-light'); }
-            else { lightEl.classList.add('danger-light'); }
-        }
+  <div id="fx-content" style="display:none">
+    <div class="head">
+      <div class="eyebrow">ARCHIVE</div>
+      <h1>FX Weekly</h1>
+      <div class="meta"><span id="fx-count">기록을 불러오는 중…</span></div>
+      <div class="note">일자별 외환 시황 기록을 최신순으로 보관합니다.</div>
+    </div>
+    <div class="sec" id="fx-list"><div class="loading">불러오는 중…</div></div>
+  </div>
+</div></div>
 
-        function convertMarkdownToHTML(rawText) {
-            if (!rawText) return '내용 없음';
-            return rawText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        }
+<script>
+var SHEET_ID = '1SBD-To57_OOvAnB3a4vmN9fURD0wZgIR_hXaoIZPLpc';
+var GID_DAILY = '0';
+var GID_INTEL = '1681828616';
+var FX_PASSWORD = '1234';
 
-        function renderIntelReportToHTML(rawText) {
-            if (!rawText) return `<div class="no-opinion">금일 의견 없음</div>`;
-            const lines = rawText.split('\n');
-            let htmlOutput = "";
+var INDEX_DEFS = [
+  { key:'kospi',  name:'KOSPI',           suffix:'종가' },
+  { key:'vkospi', name:'VKOSPI',          suffix:'종가' },
+  { key:'ksfut',  name:'코스피 야간선물', suffix:'' },
+  { key:'usdkrw', name:'USD/KRW',         suffix:'종가' },
+  { key:'dxy',    name:'달러인덱스',       suffix:'' }
+];
 
-            lines.forEach(line => {
-                let trimmed = line.trim();
-                if (!trimmed) return;
+var ASSETS = ['Dow Jones','S&P 500','Nasdaq 100','Hang Seng Index',
+              'Nikkei 225','WTI Crude Oil','UST 10yr','JGB 10yr'];
 
-                if (trimmed.startsWith('###') || trimmed.startsWith('1.') || trimmed.startsWith('2.') || trimmed.startsWith('3.') || trimmed.startsWith('4.') ||
-                    trimmed.startsWith('**###') || trimmed.startsWith('**1.') || trimmed.startsWith('**2.') || trimmed.startsWith('**3.') || trimmed.startsWith('**4.') ||
-                    trimmed === '주요 매크로 이벤트 및 시장 영향' || trimmed === '미국 주식시장 브리핑 (US Market Brief)' ||
-                    trimmed === 'TMT(기술/미디어/통신) 섹터 전문가 의견' || trimmed === 'US MKT INTEL VIEW & MONETIZATION MENU' ||
-                    trimmed === '**주요 매크로 이벤트 및 시장 영향**' || trimmed === '**미국 주식시장 브리핑 (US Market Brief)**' ||
-                    trimmed === '**TMT(기술/미디어/통신) 섹터 전문가 의견**' || trimmed === '**US MKT INTEL VIEW & MONETIZATION MENU**') {
-                    let cleanTitle = trimmed.replace(/###/g, '').replace(/\*\"/g, '').replace(/\*\转/g, '').replace(/\*\*/g, '').trim();
-                    htmlOutput += `<span class="intel-section-title">${cleanTitle}</span>`;
-                } else {
-                    let formattedLine = trimmed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                    htmlOutput += `<p class="intel-paragraph">${formattedLine}</p>`;
-                }
-            });
-            return htmlOutput;
-        }
+/* ---------- 탭 ---------- */
+document.querySelectorAll('.nav button').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.querySelectorAll('.nav button').forEach(function(x){ x.classList.remove('on'); });
+    document.querySelectorAll('.page').forEach(function(x){ x.classList.remove('on'); });
+    b.classList.add('on');
+    document.getElementById('p-' + b.dataset.p).classList.add('on');
+    window.scrollTo({ top:0, behavior:'smooth' });
+  });
+});
 
-        function getBadgeClass(val) {
-            if (!val || val == "0" || val == "0.0" || val == "0.00") return "badge neutral";
-            return val.startsWith('-') ? "badge down" : "badge up";
-        }
+/* ---------- FX 인증 ---------- */
+function tryAuth(){
+  var v = document.getElementById('pw').value;
+  if (v === FX_PASSWORD){
+    document.getElementById('fx-lock').style.display = 'none';
+    document.getElementById('fx-content').style.display = 'block';
+  } else {
+    document.getElementById('pw-msg').textContent = '비밀번호가 맞지 않습니다.';
+    document.getElementById('pw').value = '';
+  }
+}
+document.getElementById('pw-go').addEventListener('click', tryAuth);
+document.getElementById('pw').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') tryAuth();
+});
 
-        function renderPreMarketData(jsonDataString) {
-            try {
-                if (!jsonDataString) return;
-                const data = JSON.parse(jsonDataString);
-                
-                const mappings = {
-                    kospi: { currentId: 'kospi-current', changeId: 'kospi-change' },
-                    vkospi: { currentId: 'vkospi-current', changeId: 'vkospi-change' },
-                    ksfut: { currentId: 'ksfut-current', changeId: 'ksfut-change' }
-                };
+/* ---------- 숫자 / 날짜 ---------- */
+function toNum(v){
+  if (v === null || v === undefined) return NaN;
+  if (typeof v === 'number') return isFinite(v) ? v : NaN;
+  var s = String(v).replace(/,/g,'').replace(/%/g,'').replace(/\+/g,'').trim();
+  if (!s) return NaN;
+  var n = Number(s);
+  return isFinite(n) ? n : NaN;
+}
+function fmt(v, max){
+  var n = toNum(v);
+  if (isNaN(n)) return '--';
+  return n.toLocaleString('ko-KR', { minimumFractionDigits:0, maximumFractionDigits: max === undefined ? 3 : max });
+}
+function fmtSigned(v, max){
+  var n = toNum(v);
+  if (isNaN(n)) return '--';
+  var sign = n > 0 ? '+' : (n < 0 ? '\u2212' : '');
+  return sign + Math.abs(n).toLocaleString('ko-KR', { minimumFractionDigits:0, maximumFractionDigits: max === undefined ? 2 : max });
+}
+function dirClass(v){
+  var n = toNum(v);
+  if (isNaN(n) || n === 0) return 'flat';
+  return n > 0 ? 'up' : 'dn';
+}
+function parseDate(v){
+  if (v === null || v === undefined || v === '') return null;
+  var d;
+  if (typeof v === 'string' && v.indexOf('Date(') === 0){
+    var p = v.match(/\d+/g);
+    if (!p || p.length < 3) return null;
+    d = new Date(Number(p[0]), Number(p[1]), Number(p[2]));
+  } else {
+    d = new Date(v);
+  }
+  return (d && !isNaN(d.getTime())) ? d : null;
+}
+function ymd(d){
+  return d.getFullYear() + '-' +
+    String(d.getMonth()+1).padStart(2,'0') + '-' +
+    String(d.getDate()).padStart(2,'0');
+}
+function longKo(d){ return d.getFullYear() + '년 ' + (d.getMonth()+1) + '월 ' + d.getDate() + '일'; }
+function shortKo(d){ return (d.getMonth()+1) + '월 ' + d.getDate() + '일'; }
+function daysAgo(d){
+  var a = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  var t = new Date(); t = new Date(t.getFullYear(), t.getMonth(), t.getDate());
+  return Math.round((t - a) / 86400000);
+}
+function setLight(id, d){
+  var el = document.getElementById(id);
+  el.className = 'dot' + (d && daysAgo(d) === 0 ? ' ok' : ' no');
+}
+function md(t){
+  if (t === null || t === undefined || String(t).trim() === '') return '내용 없음';
+  return String(t)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+}
 
-                const formatWithComma = (val) => {
-                    if (!val) return '';
-                    let sign = '';
-                    if (val.startsWith('+')) { sign = '+'; val = val.substring(1); }
-                    else if (val.startsWith('-')) { sign = '-'; val = val.substring(1); }
-                    
-                    let suffix = '';
-                    if (val.endsWith('%')) { suffix = '%'; val = val.slice(0, -1); }
+/* ---------- 렌더 ---------- */
+function renderIndices(raw){
+  var box = document.getElementById('idx');
+  var data;
+  try { data = (typeof raw === 'string') ? JSON.parse(raw) : raw; }
+  catch (e) { box.innerHTML = '<div class="err">지표 데이터를 읽지 못했습니다.</div>'; return; }
+  if (!data) { box.innerHTML = '<div class="err">지표 데이터가 없습니다.</div>'; return; }
 
-                    let cleanVal = val.replace(/,/g, '').trim(); 
-                    let num = Number(cleanVal);
-                    
-                    return isNaN(num) ? val : sign + num.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 }) + suffix;
-                };
+  var html = '';
+  INDEX_DEFS.forEach(function(def){
+    var it = data[def.key];
+    if (!it) return;
 
-                Object.keys(mappings).forEach(key => {
-                    if (data[key]) {
-                        const target = data[key];
-                        const currentEl = document.getElementById(mappings[key].currentId);
-                        const changeEl = document.getElementById(mappings[key].changeId);
-                        
-                        currentEl.innerText = formatWithComma(target.current) || '--';
-                        
-                        let rawChg = (target.chg || '').trim();
-                        let rawPct = (target.chg_pct || '').trim();
-                        
-                        if (!rawChg.startsWith('+') && !rawChg.startsWith('-') && rawChg !== '0' && rawChg !== '0.00' && rawChg !== '') {
-                            rawChg = '+' + rawChg;
-                        }
-                        if (!rawPct.startsWith('+') && !rawPct.startsWith('-') && rawPct !== '0%' && rawPct !== '0.00%' && rawPct !== '') {
-                            rawPct = '+' + rawPct;
-                        }
+    var label = '';
+    var d = it.date ? parseDate(it.date) : null;
+    if (d) label = shortKo(d) + (def.suffix ? ' ' + def.suffix : '');
 
-                        const formattedChg = formatWithComma(rawChg);
-                        const formattedPct = formatWithComma(rawPct);
-                        const changeText = `${formattedChg} (${formattedPct}%)`;
-                        
-                        changeEl.className = 'pm-change';
-                        
-                        if (rawChg.startsWith('+')) {
-                            changeEl.classList.add('status-up');
-                            changeEl.innerText = '▲ ' + changeText;
-                        } else if (rawChg.startsWith('-')) {
-                            changeEl.classList.add('status-down');
-                            changeEl.innerText = '▼ ' + changeText;
-                        } else {
-                            changeEl.classList.add('status-flat');
-                            changeEl.innerText = changeText;
-                        }
-                    }
-                });
-            } catch (error) {
-                console.error("국내 장전 프리마켓 데이터 파싱 오류:", error);
-            }
-        }
+    var cls = dirClass(it.chg);
+    var arrow = cls === 'up' ? '\u25B2 ' : (cls === 'dn' ? '\u25BC ' : '');
 
-        async function fetchAllData() {
-            const urlDaily = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=0&tqx=out:json`;
-            const urlIntel = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?gid=1681828616&tqx=out:json`;
+    html += '<div class="row">' +
+      '<div class="nm">' + def.name + (label ? '<i>' + label + '</i>' : '') + '</div>' +
+      '<div class="val">' +
+        '<div class="px num">' + fmt(it.current) + '</div>' +
+        '<div class="ch num ' + cls + '">' + arrow + fmtSigned(it.chg) + ' \u00B7 ' + fmtSigned(it.chg_pct) + '%</div>' +
+      '</div></div>';
+  });
 
-            try {
-                const resDaily = await fetch(urlDaily);
-                const textDaily = await resDaily.text();
-                const jsonDaily = JSON.parse(textDaily.substring(textDaily.indexOf('{'), textDaily.lastIndexOf('}') + 1));
-                const globalDailyRows = jsonDaily.table.rows;
+  box.innerHTML = html || '<div class="err">표시할 지표가 없습니다.</div>';
+}
 
-                if (globalDailyRows && globalDailyRows.length > 0) {
-                    const lastRow = globalDailyRows[globalDailyRows.length - 1];
-                    let dailyDateInfo = parseAndFormatDate(lastRow.c[0] ? lastRow.c[0].v : null);
+function renderMarkets(raw){
+  var tb = document.getElementById('mkt');
+  var arr;
+  try { arr = JSON.parse(raw || '[]'); }
+  catch (e) { tb.innerHTML = '<tr><td colspan="6" class="empty">마켓 데이터를 읽지 못했습니다.</td></tr>'; return; }
+  if (!Array.isArray(arr) || !arr.length){
+    tb.innerHTML = '<tr><td colspan="6" class="empty">데이터가 비어 있습니다.</td></tr>';
+    return;
+  }
 
-                    document.getElementById('stock-market-content').innerHTML = convertMarkdownToHTML(lastRow.c[1] ? lastRow.c[1].v : '내용 없음');
-                    document.getElementById('macro-market-content').innerHTML = convertMarkdownToHTML(lastRow.c[2] ? lastRow.c[2].v : '내용 없음');
-                    document.getElementById('fx-market-content').innerHTML = convertMarkdownToHTML(lastRow.c[3] ? lastRow.c[3].v : '내용 없음');
-                    document.getElementById('live-update-date').innerText = `최종 업데이트: ${dailyDateInfo ? dailyDateInfo.display : '날짜 없음'}`;
-                    updateStatusLight('live-status-light', dailyDateInfo);
+  var html = '';
+  ASSETS.forEach(function(name){
+    var it = null;
+    for (var i = 0; i < arr.length; i++){
+      if (arr[i] && arr[i].name && String(arr[i].name).trim().toLowerCase() === name.toLowerCase()){ it = arr[i]; break; }
+    }
+    if (!it) return;
+    html += '<tr>' +
+      '<td>' + it.name + '</td>' +
+      '<td class="num">' + fmt(it.current) + '</td>' +
+      '<td class="num col-abs ' + dirClass(it.chg1d) + '">' + fmtSigned(it.chg1d) + '</td>' +
+      '<td class="num ' + dirClass(it.chg1d_pct) + '">' + fmtSigned(it.chg1d_pct) + '%</td>' +
+      '<td class="num col-abs ' + dirClass(it.chg1wk) + '">' + fmtSigned(it.chg1wk) + '</td>' +
+      '<td class="num ' + dirClass(it.chg1wk_pct) + '">' + fmtSigned(it.chg1wk_pct) + '%</td>' +
+    '</tr>';
+  });
+  tb.innerHTML = html || '<tr><td colspan="6" class="empty">일치하는 종목이 없습니다.</td></tr>';
+}
 
-                    if (lastRow.c[5] && lastRow.c[5].v) {
-                        renderPreMarketData(lastRow.c[5].v);
-                    }
+function renderIntel(text){
+  if (!text || !String(text).trim()) return '<div class="i-p" style="color:var(--tx4)">금일 등록된 의견이 없습니다.</div>';
+  var out = '';
+  String(text).split('\n').forEach(function(line){
+    var t = line.trim();
+    if (!t) return;
 
-                    try {
-                        let rawJsonString = lastRow.c[4] ? lastRow.c[4].v : "[]";
-                        let marketDataArray = JSON.parse(rawJsonString);
-                        const targetAssets = ["Dow Jones", "S&P 500", "Nasdaq 100", "Hang Seng Index", "Nikkei 225", "WTI Crude Oil", "UST 10yr", "JGB 10yr"];
+    var isHead = false;
+    if (/^#{1,6}\s*/.test(t)) isHead = true;
+    else if (/^\*\*[^*]+\*\*$/.test(t)) isHead = true;
+    else if (/^\d+[.)]\s/.test(t) && t.length < 60) isHead = true;
 
-                        if (marketDataArray && marketDataArray.length > 0) {
-                            const formatNumberWithComma = (val) => {
-                                if (!val) return '--';
-                                let cleanVal = String(val).replace(/,/g, '').trim();
-                                let num = Number(cleanVal);
-                                return isNaN(num) ? val : num.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 });
-                            };
+    var clean = t.replace(/^#{1,6}\s*/, '').replace(/^\*\*|\*\*$/g, '').trim();
+    if (isHead){
+      out += '<div class="i-h">' + md(clean).replace(/<\/?b>/g,'') + '</div>';
+    } else {
+      out += '<p class="i-p">' + md(t) + '</p>';
+    }
+  });
+  return out;
+}
 
-                            let tableHtml = "";
-                            targetAssets.forEach(targetName => {
-                                const item = marketDataArray.find(d => d.name.trim().toLowerCase() === targetName.toLowerCase());
-                                if (item) {
-                                    const formattedCurrent = formatNumberWithComma(item.current);
-                                    const formattedChg1d = formatNumberWithComma(item.chg1d);
-                                    const formattedChg1wk = formatNumberWithComma(item.chg1wk);
+function staleBanner(d, what){
+  if (!d) return '';
+  var n = daysAgo(d);
+  if (n <= 0) return '';
+  return '<div class="stale"><b>' + n + '일 전 자료입니다</b> \u00B7 ' + longKo(d) + ' 작성<br>' +
+    '오늘 ' + what + '은 아직 등록되지 않았습니다.</div>';
+}
 
-                                    tableHtml += `<tr>
-                <td class="asset-name">${item.name}</td>
-                <td class="asset-current">${formattedCurrent}</td>
-                <td><span class="${getBadgeClass(item.chg1d)}">${formattedChg1d}</span></td>
-                <td><span class="${getBadgeClass(item.chg1d_pct)}">${item.chg1d_pct}%</span></td>
-                <td><span class="${getBadgeClass(item.chg1wk)}">${formattedChg1wk}</span></td>
-                <td><span class="${getBadgeClass(item.chg1wk_pct)}">${item.chg1wk_pct}%</span></td>
-            </tr>`;
-                                }
-                            });
-                            document.getElementById('market-table-body').innerHTML = tableHtml;
-                        } else {
-                            document.getElementById('market-table-body').innerHTML = `<tr><td colspan="6" style="text-align:center; color:#8b949e;">금일 마켓 테이블 데이터가 비어있습니다.</td></tr>`;
-                        }
-                    } catch (jsonErr) {
-                        console.error("마켓 JSON 데이터 파싱 실패:", jsonErr);
-                    }
+function showError(msg){
+  document.querySelectorAll('.loading').forEach(function(el){
+    el.textContent = msg;
+    el.classList.remove('loading');
+    el.classList.add('err');
+  });
+  var tb = document.getElementById('mkt');
+  if (tb && tb.innerText.indexOf('불러오는 중') >= 0){
+    tb.innerHTML = '<tr><td colspan="6" class="empty" style="color:var(--dn)">' + msg + '</td></tr>';
+  }
+}
 
-                    // 최초 1회만 자동으로 펼침 (이후 갱신 시 사용자가 닫아둔 상태를 유지)
-                    if (!window.__accordionInitialized) {
-                        const mktDropdown = document.getElementById('market-dropdown');
-                        if (mktDropdown) {
-                            mktDropdown.classList.add('open');
-                            const accHeader = document.querySelector('.accordion-header');
-                            if (accHeader) accHeader.classList.add('open');
-                        }
-                        window.__accordionInitialized = true;
-                    }
+/* ---------- 데이터 로드 ---------- */
+function gvizUrl(gid){
+  return 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?gid=' + gid + '&tqx=out:json';
+}
+async function fetchTable(gid){
+  var res = await fetch(gvizUrl(gid));
+  var txt = await res.text();
+  var json = JSON.parse(txt.substring(txt.indexOf('{'), txt.lastIndexOf('}') + 1));
+  return (json.table && json.table.rows) ? json.table.rows : [];
+}
+function cell(row, i){
+  return (row && row.c && row.c[i] && row.c[i].v !== undefined) ? row.c[i].v : null;
+}
 
-                    let archiveHtml = "";
-                    for (let i = globalDailyRows.length - 1; i >= 0; i--) {
-                        let currentRow = globalDailyRows[i];
-                        let archiveDateInfo = parseAndFormatDate(currentRow.c[0] ? currentRow.c[0].v : null);
-                        let fxContent = currentRow.c[3] ? currentRow.c[3].v : "내용 없음";
+async function loadAll(){
+  try {
+    var rows = await fetchTable(GID_DAILY);
 
-                        if (archiveDateInfo && fxContent !== "내용 없음") {
-                            archiveHtml += `
-                                <div class="archive-item">
-                                    <div class="archive-date">${archiveDateInfo.display} FX 데일리 기록</div>
-                                    <div class="archive-body">${convertMarkdownToHTML(fxContent)}</div>
-                                </div>
-                            `;
-                        }
-                    }
-                    document.getElementById('fx-archive-container').innerHTML = archiveHtml || `<div style="text-align:center; color:#8b949e; padding:30px;">아카이브에 저장된 외환 데이터가 존재하지 않습니다.</div>`;
-                }
+    if (rows.length){
+      var last = rows[rows.length - 1];
+      var d = parseDate(cell(last, 0));
 
-                const resIntel = await fetch(urlIntel);
-                const textIntel = await resIntel.text();
-                const jsonIntel = JSON.parse(textIntel.substring(textIntel.indexOf('{'), textIntel.lastIndexOf('}') + 1));
-                const rowsIntel = jsonIntel.table.rows;
+      document.getElementById('d-date').textContent =
+        d ? (longKo(d) + ' 기준') : '날짜 정보 없음';
+      setLight('d-dot', d);
 
-                if (rowsIntel && rowsIntel.length > 0) {
-                    let combinedReport = ""; let firstValidDateInfo = null;
-                    rowsIntel.forEach(row => {
-                        if (row.c[0] && row.c[0].v && !firstValidDateInfo) firstValidDateInfo = parseAndFormatDate(row.c[0].v);
-                        if (row.c[1] && row.c[1].v) combinedReport += row.c[1].v + "\n";
-                    });
-                    document.getElementById('intel-market-content').innerHTML = renderIntelReportToHTML(combinedReport);
-                    document.getElementById('intel-update-date').innerText = `최종 업데이트: ${firstValidDateInfo ? firstValidDateInfo.display : '날짜 없음'}`;
-                    updateStatusLight('intel-status-light', firstValidDateInfo);
-                }
+      document.getElementById('c-stock').innerHTML = md(cell(last, 1));
+      document.getElementById('c-news').innerHTML  = md(cell(last, 2));
+      document.getElementById('c-fx').innerHTML    = md(cell(last, 3));
 
-            } catch (error) {
-                console.error("데이터 통합 로딩 에러:", error);
-                // 무한 '로딩 중...' 대신 실패를 명시 (모바일에서 특히 중요)
-                document.querySelectorAll('.loading').forEach(el => {
-                    el.textContent = '데이터를 불러오지 못했습니다. 네트워크를 확인한 뒤 새로고침해 주세요.';
-                    el.classList.remove('loading');
-                });
-                const tbody = document.getElementById('market-table-body');
-                if (tbody && tbody.innerText.includes('불러오는 중')) {
-                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#f38ba8;">데이터 로딩 실패</td></tr>`;
-                }
-            }
-        }
+      renderMarkets(cell(last, 4));
 
-        /* ===== 데이터 최신화 =====
-           최초 로드 + 5분 주기 + 탭 복귀 시 재조회.
-           폰을 잠갔다 다시 열었을 때 어제 데이터가 남아있는 것을 방지. */
-        let lastFetchAt = 0;
-        async function refreshData(force) {
-            const now = Date.now();
-            if (!force && now - lastFetchAt < 60000) return; // 1분 내 중복 호출 방지
-            lastFetchAt = now;
-            await fetchAllData();
-        }
+      var pm = cell(last, 5);
+      if (pm) renderIndices(pm);
+      else document.getElementById('idx').innerHTML =
+        '<div class="err">오늘 지표가 아직 등록되지 않았습니다.</div>';
 
-        window.addEventListener('load', () => refreshData(true));
-        setInterval(() => refreshData(false), 5 * 60 * 1000);
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') refreshData(false);
-        });
-    </script>
+      var arc = '';
+      var cnt = 0;
+      for (var i = rows.length - 1; i >= 0; i--){
+        var ad = parseDate(cell(rows[i], 0));
+        var fx = cell(rows[i], 3);
+        if (!ad || !fx || !String(fx).trim()) continue;
+        cnt++;
+        arc += '<div class="arc"><div class="arc-d">' + longKo(ad) + '</div>' +
+               '<div class="arc-b">' + md(fx) + '</div></div>';
+      }
+      document.getElementById('fx-list').innerHTML =
+        arc || '<div class="err">보관된 기록이 없습니다.</div>';
+      document.getElementById('fx-count').textContent = cnt + '건의 기록';
+    }
+
+    var irows = await fetchTable(GID_INTEL);
+    if (irows.length){
+      var text = '';
+      var idate = null;
+      irows.forEach(function(r){
+        if (!idate) idate = parseDate(cell(r, 0));
+        var v = cell(r, 1);
+        if (v) text += v + '\n';
+      });
+      document.getElementById('i-date').textContent =
+        idate ? (longKo(idate) + ' 작성') : '날짜 정보 없음';
+      setLight('i-dot', idate);
+      document.getElementById('i-stale').innerHTML = staleBanner(idate, '자료');
+      document.getElementById('i-body').innerHTML = renderIntel(text);
+    }
+
+  } catch (err) {
+    console.error(err);
+    showError('데이터를 불러오지 못했습니다. 네트워크를 확인한 뒤 새로고침해 주세요.');
+  }
+}
+
+/* ---------- 갱신 ---------- */
+var lastFetch = 0;
+function refresh(force){
+  var now = Date.now();
+  if (!force && now - lastFetch < 60000) return;
+  lastFetch = now;
+  loadAll();
+}
+window.addEventListener('load', function(){ refresh(true); });
+setInterval(function(){ refresh(false); }, 300000);
+document.addEventListener('visibilitychange', function(){
+  if (document.visibilityState === 'visible') refresh(false);
+});
+</script>
 </body>
-
 </html>
