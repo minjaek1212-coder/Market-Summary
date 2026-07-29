@@ -3,7 +3,13 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0b0d11">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Market Assistant">
+    <meta name="format-detection" content="telephone=no">
     <title>Daily Market Summary Dashboard</title>
     <style>
         *, *::before, *::after { box-sizing: border-box; }
@@ -405,8 +411,48 @@
         @keyframes pm-blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
         @keyframes blink { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 
+        /* ===== 모바일 대응 (출근길 폰 조회용) ===== */
         @media (max-width: 768px) {
+            body { padding: 14px; padding-bottom: 40px; }
+
             .pm-grid { grid-template-columns: 1fr; }
+
+            .navbar { gap: 4px; padding: 6px; top: 8px; margin-bottom: 20px; }
+            .nav-btn {
+                flex: 1;
+                padding: 10px 4px;
+                font-size: 12.5px;
+                text-align: center;
+                white-space: nowrap;
+            }
+
+            .header-main { flex-direction: column; align-items: flex-start; gap: 12px; }
+            header { padding-bottom: 16px; margin-bottom: 20px; }
+            header h1 { font-size: 21px; letter-spacing: -0.4px; }
+            .header-sub { font-size: 12.5px; }
+            .date-container { padding: 5px 12px; }
+            .date { font-size: 12.5px; }
+
+            .pm-container { padding: 14px 16px; margin-bottom: 20px; }
+            .pm-current { font-size: 18px; }
+
+            .accordion-section { margin-bottom: 20px; }
+            .accordion-header { padding: 14px 16px; font-size: 14px; }
+            .accordion-content { padding: 14px; }
+
+            .card { padding: 18px; border-radius: 14px; margin-bottom: 20px; }
+            .card h2 { font-size: 17px; margin-bottom: 14px; }
+            .market-text { padding: 16px; font-size: 14.5px; }
+
+            .intel-section-title { font-size: 16px; margin-top: 22px; }
+            /* 좁은 화면에서 양쪽정렬은 단어 사이가 벌어져 가독성이 떨어짐 */
+            .intel-paragraph { text-align: left; }
+
+            .secure-lock-box { margin: 48px auto; padding: 28px 20px; }
+            .archive-item { padding: 14px 16px; }
+
+            /* 터치 기기에서는 hover가 탭 후 고착되므로 이동 효과 제거 */
+            .card:hover, .pm-card:hover { transform: none; }
         }
     </style>
 </head>
@@ -786,11 +832,15 @@
                         console.error("마켓 JSON 데이터 파싱 실패:", jsonErr);
                     }
 
-                    const mktDropdown = document.getElementById('market-dropdown');
-                    if (mktDropdown) {
-                        mktDropdown.classList.add('open');
-                        const accHeader = document.querySelector('.accordion-header');
-                        if (accHeader) accHeader.classList.add('open');
+                    // 최초 1회만 자동으로 펼침 (이후 갱신 시 사용자가 닫아둔 상태를 유지)
+                    if (!window.__accordionInitialized) {
+                        const mktDropdown = document.getElementById('market-dropdown');
+                        if (mktDropdown) {
+                            mktDropdown.classList.add('open');
+                            const accHeader = document.querySelector('.accordion-header');
+                            if (accHeader) accHeader.classList.add('open');
+                        }
+                        window.__accordionInitialized = true;
                     }
 
                     let archiveHtml = "";
@@ -829,10 +879,34 @@
 
             } catch (error) {
                 console.error("데이터 통합 로딩 에러:", error);
+                // 무한 '로딩 중...' 대신 실패를 명시 (모바일에서 특히 중요)
+                document.querySelectorAll('.loading').forEach(el => {
+                    el.textContent = '데이터를 불러오지 못했습니다. 네트워크를 확인한 뒤 새로고침해 주세요.';
+                    el.classList.remove('loading');
+                });
+                const tbody = document.getElementById('market-table-body');
+                if (tbody && tbody.innerText.includes('불러오는 중')) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#f38ba8;">데이터 로딩 실패</td></tr>`;
+                }
             }
         }
 
-        window.onload = fetchAllData;
+        /* ===== 데이터 최신화 =====
+           최초 로드 + 5분 주기 + 탭 복귀 시 재조회.
+           폰을 잠갔다 다시 열었을 때 어제 데이터가 남아있는 것을 방지. */
+        let lastFetchAt = 0;
+        async function refreshData(force) {
+            const now = Date.now();
+            if (!force && now - lastFetchAt < 60000) return; // 1분 내 중복 호출 방지
+            lastFetchAt = now;
+            await fetchAllData();
+        }
+
+        window.addEventListener('load', () => refreshData(true));
+        setInterval(() => refreshData(false), 5 * 60 * 1000);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') refreshData(false);
+        });
     </script>
 </body>
 
