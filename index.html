@@ -236,16 +236,27 @@ var GID_DAILY = '0';
 var GID_INTEL = '1681828616';
 var FX_PASSWORD = '1234';
 
+/* Domestic 표에 표시할 항목 (출처: F열) */
 var INDEX_DEFS = [
   { key:'kospi',  name:'KOSPI',           suffix:'종가' },
   { key:'vkospi', name:'VKOSPI',          suffix:'종가' },
   { key:'ksfut',  name:'코스피 야간선물', suffix:'' },
-  { key:'usdkrw', name:'USD/KRW',         suffix:'종가' },
-  { key:'dxy',    name:'달러인덱스',       suffix:'' }
+  { key:'usdkrw', name:'USD/KRW',         suffix:'종가' }
 ];
 
-var ASSETS = ['Dow Jones','S&P 500','Nasdaq 100','Hang Seng Index',
-              'Nikkei 225','WTI Crude Oil','UST 10yr','JGB 10yr'];
+/* Global 표에 표시할 항목과 순서
+   기본 출처는 E열(Make.com)이며, from:'pm' 인 항목만 F열(엑셀)에서 가져옵니다. */
+var ASSETS = [
+  { name:'Dow Jones' },
+  { name:'S&P 500' },
+  { name:'Nasdaq 100' },
+  { name:'Hang Seng Index' },
+  { name:'Nikkei 225' },
+  { name:'달러인덱스', from:'pm', key:'dxy', suffix:'' },
+  { name:'WTI Crude Oil' },
+  { name:'UST 10yr' },
+  { name:'JGB 10yr' }
+];
 
 /* ---------- 탭 ---------- */
 document.querySelectorAll('.nav button').forEach(function(b){
@@ -352,107 +363,74 @@ function md(t){
 }
 
 /* ---------- 렌더 ---------- */
-function renderIndices(raw){
-  var tb = document.getElementById('idx');
-  var data;
-  try { data = (typeof raw === 'string') ? JSON.parse(raw) : raw; }
-  catch (e) {
-    tb.innerHTML = '<tr><td colspan="6" class="empty" style="color:var(--dn)">지표 데이터를 읽지 못했습니다.</td></tr>';
-    return;
-  }
-  if (!data) {
-    tb.innerHTML = '<tr><td colspan="6" class="empty" style="color:var(--dn)">지표 데이터가 없습니다.</td></tr>';
-    return;
-  }
+/* 두 표가 완전히 같은 방식으로 그려지도록, 출처가 달라도
+   아래 형태로 한 번 정규화한 뒤 rowHtml 하나로 렌더링합니다. */
+function normMarket(it){
+  return { current:it.current, d1:it.chg1d, d1p:it.chg1d_pct,
+           w1:it.chg1wk, w1p:it.chg1wk_pct, label:'' };
+}
+function normPm(it, suffix){
+  var d = it.date ? parseDate(it.date) : null;
+  return { current:it.current, d1:it.chg, d1p:it.chg_pct,
+           w1:it.chg1wk, w1p:it.chg1wk_pct,
+           label: d ? (shortKo(d) + (suffix ? ' ' + suffix : '')) : '' };
+}
+function rowHtml(name, v, dec){
+  return '<tr>' +
+    '<td>' + name + (v.label ? '<i>' + v.label + '</i>' : '') + '</td>' +
+    '<td class="num">' + fmt(v.current, dec) + '</td>' +
+    '<td class="num col-abs ' + dirClass(v.d1) + '">' + fmtSigned(v.d1, dec) + '</td>' +
+    '<td class="num ' + dirClass(v.d1p) + '">' + pct(v.d1p) + '</td>' +
+    '<td class="num col-abs ' + dirClass(v.w1) + '">' + fmtSigned(v.w1, dec) + '</td>' +
+    '<td class="num ' + dirClass(v.w1p) + '">' + pct(v.w1p) + '</td>' +
+  '</tr>';
+}
+function tableMsg(id, msg, isErr){
+  document.getElementById(id).innerHTML =
+    '<tr><td colspan="6" class="empty"' + (isErr ? ' style="color:var(--dn)"' : '') + '>' + msg + '</td></tr>';
+}
+
+/* F열 JSON 파싱 — 실패해도 null 을 돌려주고 화면은 계속 그립니다 */
+function parsePm(raw){
+  if (!raw) return null;
+  try { return (typeof raw === 'string') ? JSON.parse(raw) : raw; }
+  catch (e) { return null; }
+}
+
+function renderDomestic(pm){
+  if (!pm) { tableMsg('idx', '오늘 지표가 아직 등록되지 않았습니다.', true); return; }
 
   var html = '';
   INDEX_DEFS.forEach(function(def){
-    var it = data[def.key];
-    if (!it) return;
-
-    var label = '';
-    var d = it.date ? parseDate(it.date) : null;
-    if (d) label = shortKo(d) + (def.suffix ? ' ' + def.suffix : '');
-
-    html += '<tr>' +
-      '<td>' + def.name + (label ? '<i>' + label + '</i>' : '') + '</td>' +
-      '<td class="num">' + fmt(it.current) + '</td>' +
-      '<td class="num col-abs ' + dirClass(it.chg) + '">' + fmtSigned(it.chg) + '</td>' +
-      '<td class="num ' + dirClass(it.chg_pct) + '">' + pct(it.chg_pct) + '</td>' +
-      '<td class="num col-abs ' + dirClass(it.chg1wk) + '">' + fmtSigned(it.chg1wk) + '</td>' +
-      '<td class="num ' + dirClass(it.chg1wk_pct) + '">' + pct(it.chg1wk_pct) + '</td>' +
-    '</tr>';
+    var it = pm[def.key];
+    if (it) html += rowHtml(def.name, normPm(it, def.suffix));
   });
-
-  tb.innerHTML = html || '<tr><td colspan="6" class="empty">표시할 지표가 없습니다.</td></tr>';
+  if (html) document.getElementById('idx').innerHTML = html;
+  else tableMsg('idx', '표시할 지표가 없습니다.', true);
 }
 
-function renderMarkets(raw){
-  var tb = document.getElementById('mkt');
-  var arr;
-  try { arr = JSON.parse(raw || '[]'); }
-  catch (e) { tb.innerHTML = '<tr><td colspan="6" class="empty">마켓 데이터를 읽지 못했습니다.</td></tr>'; return; }
-  if (!Array.isArray(arr) || !arr.length){
-    tb.innerHTML = '<tr><td colspan="6" class="empty">데이터가 비어 있습니다.</td></tr>';
-    return;
-  }
+function renderGlobal(raw, pm){
+  var arr = [];
+  try { arr = JSON.parse(raw || '[]'); } catch (e) { arr = []; }
+  if (!Array.isArray(arr)) arr = [];
 
   var html = '';
-  ASSETS.forEach(function(name){
-    var it = null;
-    for (var i = 0; i < arr.length; i++){
-      if (arr[i] && arr[i].name && String(arr[i].name).trim().toLowerCase() === name.toLowerCase()){ it = arr[i]; break; }
+  ASSETS.forEach(function(a){
+    if (a.from === 'pm') {
+      var it = pm ? pm[a.key] : null;
+      if (it) html += rowHtml(a.name, normPm(it, a.suffix), decFor(a.name));
+      return;
     }
-    if (!it) return;
-    var d = decFor(name);
-    html += '<tr>' +
-      '<td>' + it.name + '</td>' +
-      '<td class="num">' + fmt(it.current, d) + '</td>' +
-      '<td class="num col-abs ' + dirClass(it.chg1d) + '">' + fmtSigned(it.chg1d, d) + '</td>' +
-      '<td class="num ' + dirClass(it.chg1d_pct) + '">' + pct(it.chg1d_pct) + '</td>' +
-      '<td class="num col-abs ' + dirClass(it.chg1wk) + '">' + fmtSigned(it.chg1wk, d) + '</td>' +
-      '<td class="num ' + dirClass(it.chg1wk_pct) + '">' + pct(it.chg1wk_pct) + '</td>' +
-    '</tr>';
+    var m = null;
+    for (var i = 0; i < arr.length; i++){
+      if (arr[i] && arr[i].name &&
+          String(arr[i].name).trim().toLowerCase() === a.name.toLowerCase()){ m = arr[i]; break; }
+    }
+    if (m) html += rowHtml(m.name, normMarket(m), decFor(a.name));
   });
-  tb.innerHTML = html || '<tr><td colspan="6" class="empty">일치하는 종목이 없습니다.</td></tr>';
-}
 
-/* Market Intel 보고서의 고정 5개 섹션.
-   앞뒤에 #, **, [ ] 가 붙거나 띄어쓰기가 달라도 인식됩니다. */
-var INTEL_SECTIONS = [
-  { label:'매크로',     match:'주요 매크로 이벤트' },
-  { label:'미국 증시',  match:'미국 주식시장 브리핑' },
-  { label:'TMT',        match:'TMT' },
-  { label:'Intel View', match:'INTEL VIEW' },
-  { label:'대처 전략',  match:'대처 전략' }
-];
-
-function normHead(s){
-  return String(s)
-    .replace(/^#{1,6}\s*/, '')
-    .replace(/\*\*/g, '')
-    .replace(/[\[\]]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-function matchSection(line){
-  var t = normHead(line);
-  if (!t || t.length > 70) return -1;
-  var up = t.toUpperCase();
-  for (var i = 0; i < INTEL_SECTIONS.length; i++){
-    if (up.indexOf(INTEL_SECTIONS[i].match.toUpperCase()) >= 0) return i;
-  }
-  return -1;
-}
-function bodyHtml(lines){
-  var h = '';
-  lines.forEach(function(t){
-    if (!t) return;
-    var isSub = /^#{1,6}\s/.test(t) || /^\*\*[^*]+\*\*$/.test(t);
-    if (isSub) h += '<div class="i-h">' + esc(normHead(t)) + '</div>';
-    else       h += '<p class="i-p">' + md(t) + '</p>';
-  });
-  return h || '<p class="i-p" style="color:var(--tx4)">내용 없음</p>';
+  if (html) document.getElementById('mkt').innerHTML = html;
+  else tableMsg('mkt', '데이터가 비어 있습니다.', false);
 }
 
 function renderIntel(text){
@@ -552,12 +530,9 @@ async function loadAll(){
       document.getElementById('c-news').innerHTML  = md(cell(last, 2));
       document.getElementById('c-fx').innerHTML    = md(cell(last, 3));
 
-      renderMarkets(cell(last, 4));
-
-      var pm = cell(last, 5);
-      if (pm) renderIndices(pm);
-      else document.getElementById('idx').innerHTML =
-        '<tr><td colspan="6" class="empty" style="color:var(--dn)">오늘 지표가 아직 등록되지 않았습니다.</td></tr>';
+      var pm = parsePm(cell(last, 5));
+      renderDomestic(pm);
+      renderGlobal(cell(last, 4), pm);
 
       var arc = '';
       var cnt = 0;
