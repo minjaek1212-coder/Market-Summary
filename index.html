@@ -252,7 +252,7 @@ var ASSETS = [
   { name:'Nasdaq 100' },
   { name:'Hang Seng Index' },
   { name:'Nikkei 225' },
-  { name:'달러인덱스', from:'pm', key:'dxy', suffix:'' },
+  { name:'달러인덱스', from:'pm', key:'dxy' },
   { name:'WTI Crude Oil' },
   { name:'UST 10yr' },
   { name:'JGB 10yr' }
@@ -287,10 +287,10 @@ document.getElementById('pw').addEventListener('keydown', function(e){
 
 /* ---------- 숫자 / 날짜 ---------- */
 /* 소수점 자릿수 — 기본 2자리.
-   특정 종목만 다르게 하려면 아래에 추가하세요.
-   예) 국채 금리를 3자리로: { 'UST 10yr': 3, 'JGB 10yr': 3 } */
+   국채 금리는 0.1bp 단위가 의미 있어 3자리로 둡니다.
+   다른 종목을 예외로 두려면 아래 목록에 이름과 자릿수를 추가하세요. */
 var DECIMALS = 2;
-var DECIMALS_BY_ASSET = {};
+var DECIMALS_BY_ASSET = { 'UST 10yr': 3, 'JGB 10yr': 3 };
 function decFor(name){
   return (DECIMALS_BY_ASSET[name] !== undefined) ? DECIMALS_BY_ASSET[name] : DECIMALS;
 }
@@ -418,7 +418,11 @@ function renderGlobal(raw, pm){
   ASSETS.forEach(function(a){
     if (a.from === 'pm') {
       var it = pm ? pm[a.key] : null;
-      if (it) html += rowHtml(a.name, normPm(it, a.suffix), decFor(a.name));
+      if (it) {
+        var v = normPm(it, '');
+        v.label = '';            // Global 표는 기준일자를 표시하지 않음
+        html += rowHtml(a.name, v, decFor(a.name));
+      }
       return;
     }
     var m = null;
