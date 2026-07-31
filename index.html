@@ -65,16 +65,7 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
 .sec-h{font-size:12.5px;font-weight:600;color:var(--accent);margin-bottom:13px;letter-spacing:-.01em}
 .plain{padding:0}
 
-/* index rows */
-.row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:11px 0}
-.row+.row{border-top:1px solid var(--line)}
-.row:first-child{padding-top:2px}
-.row:last-child{padding-bottom:2px}
-.nm{font-size:14px;font-weight:600;color:var(--tx2)}
-.nm i{display:block;font-style:normal;font-size:10.5px;color:var(--tx4);font-weight:500;margin-top:3px}
-.val{text-align:right;white-space:nowrap}
-.px{font-size:17px;font-weight:500;letter-spacing:-.01em}
-.ch{font-size:12px;margin-top:3px}
+/* 등락 색 */
 .up{color:var(--up)}
 .dn{color:var(--dn)}
 .flat{color:var(--flat)}
@@ -83,7 +74,8 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
 .tbl{width:100%;border-collapse:collapse;font-size:13px}
 .tbl th{text-align:right;font-size:11px;color:var(--tx4);font-weight:600;padding:0 0 10px}
 .tbl th:first-child{text-align:left}
-.tbl td{text-align:right;padding:8px 0}
+.tbl td{text-align:right;padding:9px 0;vertical-align:top}
+.tbl td i{display:block;font-style:normal;font-size:10.5px;color:var(--tx4);font-weight:500;margin-top:3px}
 .tbl tbody tr+tr td{border-top:1px solid var(--line)}
 .tbl td:first-child{text-align:left;color:var(--tx2);font-weight:600;font-size:12.5px}
 .tbl .empty{text-align:center;color:var(--tx4);padding:20px 0;border-top:none}
@@ -163,15 +155,22 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
   </div>
 
   <div class="sec">
-    <div class="sec-h">국내 지표</div>
-    <div id="idx"><div class="loading">불러오는 중…</div></div>
+    <div class="sec-h">Domestic</div>
+    <table class="tbl">
+      <thead><tr>
+        <th>종목</th><th>최종가</th>
+        <th class="col-abs">1일</th><th>1일 %</th>
+        <th class="col-abs">1주</th><th>1주 %</th>
+      </tr></thead>
+      <tbody id="idx"><tr><td colspan="6" class="empty">불러오는 중…</td></tr></tbody>
+    </table>
   </div>
 
   <div class="sec">
-    <div class="sec-h">해외 마켓</div>
+    <div class="sec-h">Global</div>
     <table class="tbl">
       <thead><tr>
-        <th>종목</th><th>종가</th>
+        <th>종목</th><th>최종가</th>
         <th class="col-abs">1일</th><th>1일 %</th>
         <th class="col-abs">1주</th><th>1주 %</th>
       </tr></thead>
@@ -306,6 +305,11 @@ function fmtSigned(v, d){
   var sign = n > 0 ? '+' : (n < 0 ? '\u2212' : '');
   return sign + Math.abs(n).toLocaleString('ko-KR', { minimumFractionDigits:d, maximumFractionDigits:d });
 }
+function pct(v){
+  var n = toNum(v);
+  if (isNaN(n)) return '--';
+  return fmtSigned(v) + '%';
+}
 function dirClass(v){
   var n = toNum(v);
   if (isNaN(n) || n === 0) return 'flat';
@@ -349,11 +353,17 @@ function md(t){
 
 /* ---------- 렌더 ---------- */
 function renderIndices(raw){
-  var box = document.getElementById('idx');
+  var tb = document.getElementById('idx');
   var data;
   try { data = (typeof raw === 'string') ? JSON.parse(raw) : raw; }
-  catch (e) { box.innerHTML = '<div class="err">지표 데이터를 읽지 못했습니다.</div>'; return; }
-  if (!data) { box.innerHTML = '<div class="err">지표 데이터가 없습니다.</div>'; return; }
+  catch (e) {
+    tb.innerHTML = '<tr><td colspan="6" class="empty" style="color:var(--dn)">지표 데이터를 읽지 못했습니다.</td></tr>';
+    return;
+  }
+  if (!data) {
+    tb.innerHTML = '<tr><td colspan="6" class="empty" style="color:var(--dn)">지표 데이터가 없습니다.</td></tr>';
+    return;
+  }
 
   var html = '';
   INDEX_DEFS.forEach(function(def){
@@ -364,18 +374,17 @@ function renderIndices(raw){
     var d = it.date ? parseDate(it.date) : null;
     if (d) label = shortKo(d) + (def.suffix ? ' ' + def.suffix : '');
 
-    var cls = dirClass(it.chg);
-    var arrow = cls === 'up' ? '\u25B2 ' : (cls === 'dn' ? '\u25BC ' : '');
-
-    html += '<div class="row">' +
-      '<div class="nm">' + def.name + (label ? '<i>' + label + '</i>' : '') + '</div>' +
-      '<div class="val">' +
-        '<div class="px num">' + fmt(it.current) + '</div>' +
-        '<div class="ch num ' + cls + '">' + arrow + fmtSigned(it.chg) + ' \u00B7 ' + fmtSigned(it.chg_pct) + '%</div>' +
-      '</div></div>';
+    html += '<tr>' +
+      '<td>' + def.name + (label ? '<i>' + label + '</i>' : '') + '</td>' +
+      '<td class="num">' + fmt(it.current) + '</td>' +
+      '<td class="num col-abs ' + dirClass(it.chg) + '">' + fmtSigned(it.chg) + '</td>' +
+      '<td class="num ' + dirClass(it.chg_pct) + '">' + pct(it.chg_pct) + '</td>' +
+      '<td class="num col-abs ' + dirClass(it.chg1wk) + '">' + fmtSigned(it.chg1wk) + '</td>' +
+      '<td class="num ' + dirClass(it.chg1wk_pct) + '">' + pct(it.chg1wk_pct) + '</td>' +
+    '</tr>';
   });
 
-  box.innerHTML = html || '<div class="err">표시할 지표가 없습니다.</div>';
+  tb.innerHTML = html || '<tr><td colspan="6" class="empty">표시할 지표가 없습니다.</td></tr>';
 }
 
 function renderMarkets(raw){
@@ -400,9 +409,9 @@ function renderMarkets(raw){
       '<td>' + it.name + '</td>' +
       '<td class="num">' + fmt(it.current, d) + '</td>' +
       '<td class="num col-abs ' + dirClass(it.chg1d) + '">' + fmtSigned(it.chg1d, d) + '</td>' +
-      '<td class="num ' + dirClass(it.chg1d_pct) + '">' + fmtSigned(it.chg1d_pct) + '%</td>' +
+      '<td class="num ' + dirClass(it.chg1d_pct) + '">' + pct(it.chg1d_pct) + '</td>' +
       '<td class="num col-abs ' + dirClass(it.chg1wk) + '">' + fmtSigned(it.chg1wk, d) + '</td>' +
-      '<td class="num ' + dirClass(it.chg1wk_pct) + '">' + fmtSigned(it.chg1wk_pct) + '%</td>' +
+      '<td class="num ' + dirClass(it.chg1wk_pct) + '">' + pct(it.chg1wk_pct) + '</td>' +
     '</tr>';
   });
   tb.innerHTML = html || '<tr><td colspan="6" class="empty">일치하는 종목이 없습니다.</td></tr>';
@@ -505,10 +514,12 @@ function showError(msg){
     el.classList.remove('loading');
     el.classList.add('err');
   });
-  var tb = document.getElementById('mkt');
-  if (tb && tb.innerText.indexOf('불러오는 중') >= 0){
-    tb.innerHTML = '<tr><td colspan="6" class="empty" style="color:var(--dn)">' + msg + '</td></tr>';
-  }
+  ['mkt','idx'].forEach(function(id){
+    var tb = document.getElementById(id);
+    if (tb && tb.innerText.indexOf('불러오는 중') >= 0){
+      tb.innerHTML = '<tr><td colspan="6" class="empty" style="color:var(--dn)">' + msg + '</td></tr>';
+    }
+  });
 }
 
 /* ---------- 데이터 로드 ---------- */
@@ -546,7 +557,7 @@ async function loadAll(){
       var pm = cell(last, 5);
       if (pm) renderIndices(pm);
       else document.getElementById('idx').innerHTML =
-        '<div class="err">오늘 지표가 아직 등록되지 않았습니다.</div>';
+        '<tr><td colspan="6" class="empty" style="color:var(--dn)">오늘 지표가 아직 등록되지 않았습니다.</td></tr>';
 
       var arc = '';
       var cnt = 0;
