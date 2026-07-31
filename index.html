@@ -238,7 +238,7 @@ var FX_PASSWORD = '1234';
 
 var INDEX_DEFS = [
   { key:'kospi',  name:'KOSPI',           suffix:'종가' },
-  { key:'vkospi', name:'VKOSPI',          suffix:'종가' },
+  { key:'vkospi', name:'VKOSPI (변동성)',          suffix:'종가' },
   { key:'ksfut',  name:'코스피 야간선물', suffix:'' },
   { key:'usdkrw', name:'USD/KRW',         suffix:'종가' },
   { key:'dxy',    name:'달러인덱스',       suffix:'' }
@@ -279,7 +279,7 @@ document.getElementById('pw').addEventListener('keydown', function(e){
    특정 종목만 다르게 하려면 아래에 추가하세요.
    예) 국채 금리를 3자리로: { 'UST 10yr': 3, 'JGB 10yr': 3 } */
 var DECIMALS = 2;
-var DECIMALS_BY_ASSET = {};
+var DECIMALS_BY_ASSET = { 'UST 10yr': 3, 'JGB 10yr': 3 };
 function decFor(name){
   return (DECIMALS_BY_ASSET[name] !== undefined) ? DECIMALS_BY_ASSET[name] : DECIMALS;
 }
