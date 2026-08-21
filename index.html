@@ -102,16 +102,6 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
 .i-p:last-child{margin-bottom:0}
 .i-p b{color:var(--tx);font-weight:600}
 
-/* lock */
-.lock{max-width:360px;margin:64px auto;text-align:center;background:var(--card);border-radius:14px;padding:32px 24px}
-.lock h2{margin:0 0 8px;font-size:17px;font-weight:700;color:var(--tx)}
-.lock p{margin:0 0 20px;font-size:13px;color:var(--tx4);line-height:1.7}
-.lock input{width:100%;padding:11px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--tx);font-family:inherit;font-size:15px;text-align:center;margin-bottom:11px}
-.lock input:focus{outline:none;border-color:var(--accent)}
-.lock button{width:100%;padding:11px;background:var(--accent);border:none;border-radius:10px;color:#1a150d;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
-.lock button:hover{background:#c9a878}
-.lock .msg{margin:11px 0 0;font-size:12.5px;color:var(--dn);min-height:16px}
-
 /* archive toggle */
 .seg{display:flex;gap:6px;margin-bottom:11px}
 .seg-btn{flex:0 0 auto;background:var(--card);border:none;border-radius:10px;
@@ -141,7 +131,6 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
   .tbl td:first-child{font-size:12px}
   .tbl{font-size:12.5px}
   .px{font-size:16px}
-  .lock{margin:44px auto}
 }
 </style>
 </head>
@@ -238,14 +227,7 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
   </div>
 
   <div class="arc-pane" id="a-fx">
-    <div class="lock" id="fx-lock">
-      <h2>인증이 필요합니다</h2>
-      <p>환율 기록은 열람 권한이 있는 사용자 전용입니다.</p>
-      <input type="password" id="pw" placeholder="비밀번호" autocomplete="off">
-      <button id="pw-go">확인</button>
-      <p class="msg" id="pw-msg"></p>
-    </div>
-    <div class="sec" id="fx-list" style="display:none"><div class="loading">불러오는 중…</div></div>
+    <div class="sec" id="fx-list"><div class="loading">불러오는 중…</div></div>
   </div>
 </div></div>
 
@@ -253,7 +235,6 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
 var SHEET_ID = '1SBD-To57_OOvAnB3a4vmN9fURD0wZgIR_hXaoIZPLpc';
 var GID_DAILY = '0';
 var GID_INTEL = '1681828616';
-var FX_PASSWORD = '1234';
 
 var INDEX_DEFS = [
   { key:'kospi',  name:'KOSPI',           suffix:'종가' },
@@ -278,14 +259,11 @@ document.querySelectorAll('.nav button').forEach(function(b){
 });
 
 /* ---------- FX 인증 ---------- */
-/* 주식/환율 전환 — 환율은 인증 후에만 내용이 보입니다 */
+/* 주식/환율 전환 */
 var ARC_COUNT = { stock: 0, fx: 0 };
-var fxUnlocked = false;
 
 function setArcCount(which){
-  document.getElementById('arc-count').textContent =
-    (which === 'fx' && !fxUnlocked) ? '인증이 필요합니다'
-                                    : (ARC_COUNT[which] + '건의 기록');
+  document.getElementById('arc-count').textContent = ARC_COUNT[which] + '건의 기록';
 }
 
 document.querySelectorAll('.seg-btn').forEach(function(b){
@@ -296,23 +274,6 @@ document.querySelectorAll('.seg-btn').forEach(function(b){
     document.getElementById('a-' + b.dataset.a).classList.add('on');
     setArcCount(b.dataset.a);
   });
-});
-
-function tryAuth(){
-  var v = document.getElementById('pw').value;
-  if (v === FX_PASSWORD){
-    fxUnlocked = true;
-    document.getElementById('fx-lock').style.display = 'none';
-    document.getElementById('fx-list').style.display = 'block';
-    setArcCount('fx');
-  } else {
-    document.getElementById('pw-msg').textContent = '비밀번호가 맞지 않습니다.';
-    document.getElementById('pw').value = '';
-  }
-}
-document.getElementById('pw-go').addEventListener('click', tryAuth);
-document.getElementById('pw').addEventListener('keydown', function(e){
-  if (e.key === 'Enter') tryAuth();
 });
 
 /* ---------- 숫자 / 날짜 ---------- */
