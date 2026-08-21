@@ -112,6 +112,16 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
 .lock button:hover{background:#c9a878}
 .lock .msg{margin:11px 0 0;font-size:12.5px;color:var(--dn);min-height:16px}
 
+/* archive toggle */
+.seg{display:flex;gap:6px;margin-bottom:11px}
+.seg-btn{flex:0 0 auto;background:var(--card);border:none;border-radius:10px;
+  color:var(--tx3);font-family:inherit;font-size:13px;font-weight:600;
+  padding:9px 18px;cursor:pointer;transition:color .15s,background .15s}
+.seg-btn:hover{color:var(--tx2)}
+.seg-btn.on{background:var(--accent);color:#1a150d}
+.arc-pane{display:none}
+.arc-pane.on{display:block}
+
 /* archive */
 .arc{padding:15px 0}
 .arc+.arc{border-top:1px solid var(--line)}
@@ -140,7 +150,7 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
 <nav class="nav"><div class="nav-in">
   <button class="on" data-p="daily">Daily Market</button>
   <button data-p="intel">Market Intel</button>
-  <button data-p="fx">FX Weekly</button>
+  <button data-p="arc">Archive</button>
 </div></nav>
 
 <!-- ================= DAILY ================= -->
@@ -211,22 +221,31 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
 </div></div>
 
 <!-- ================= FX WEEKLY ================= -->
-<div class="page" id="p-fx"><div class="wrap">
-  <div class="lock" id="fx-lock">
-    <h2>인증이 필요합니다</h2>
-    <p>주간 보고서 열람 권한이 있는 사용자 전용 화면입니다.</p>
-    <input type="password" id="pw" placeholder="비밀번호" autocomplete="off">
-    <button id="pw-go">확인</button>
-    <p class="msg" id="pw-msg"></p>
+<div class="page" id="p-arc"><div class="wrap">
+  <div class="head">
+    <h1>Archive</h1>
+    <div class="meta"><span id="arc-count">기록을 불러오는 중…</span></div>
+    <div class="note">일자별 시황 기록을 최신순으로 보관합니다.</div>
   </div>
 
-  <div id="fx-content" style="display:none">
-    <div class="head">
-      <h1>FX Weekly</h1>
-      <div class="meta"><span id="fx-count">기록을 불러오는 중…</span></div>
-      <div class="note">일자별 외환 시황 기록을 최신순으로 보관합니다.</div>
+  <div class="seg">
+    <button class="seg-btn on" data-a="stock">주식</button>
+    <button class="seg-btn" data-a="fx">환율</button>
+  </div>
+
+  <div class="arc-pane on" id="a-stock">
+    <div class="sec" id="stock-list"><div class="loading">불러오는 중…</div></div>
+  </div>
+
+  <div class="arc-pane" id="a-fx">
+    <div class="lock" id="fx-lock">
+      <h2>인증이 필요합니다</h2>
+      <p>환율 기록은 열람 권한이 있는 사용자 전용입니다.</p>
+      <input type="password" id="pw" placeholder="비밀번호" autocomplete="off">
+      <button id="pw-go">확인</button>
+      <p class="msg" id="pw-msg"></p>
     </div>
-    <div class="sec" id="fx-list"><div class="loading">불러오는 중…</div></div>
+    <div class="sec" id="fx-list" style="display:none"><div class="loading">불러오는 중…</div></div>
   </div>
 </div></div>
 
@@ -259,11 +278,33 @@ document.querySelectorAll('.nav button').forEach(function(b){
 });
 
 /* ---------- FX 인증 ---------- */
+/* 주식/환율 전환 — 환율은 인증 후에만 내용이 보입니다 */
+var ARC_COUNT = { stock: 0, fx: 0 };
+var fxUnlocked = false;
+
+function setArcCount(which){
+  document.getElementById('arc-count').textContent =
+    (which === 'fx' && !fxUnlocked) ? '인증이 필요합니다'
+                                    : (ARC_COUNT[which] + '건의 기록');
+}
+
+document.querySelectorAll('.seg-btn').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.querySelectorAll('.seg-btn').forEach(function(x){ x.classList.remove('on'); });
+    document.querySelectorAll('.arc-pane').forEach(function(x){ x.classList.remove('on'); });
+    b.classList.add('on');
+    document.getElementById('a-' + b.dataset.a).classList.add('on');
+    setArcCount(b.dataset.a);
+  });
+});
+
 function tryAuth(){
   var v = document.getElementById('pw').value;
   if (v === FX_PASSWORD){
+    fxUnlocked = true;
     document.getElementById('fx-lock').style.display = 'none';
-    document.getElementById('fx-content').style.display = 'block';
+    document.getElementById('fx-list').style.display = 'block';
+    setArcCount('fx');
   } else {
     document.getElementById('pw-msg').textContent = '비밀번호가 맞지 않습니다.';
     document.getElementById('pw').value = '';
@@ -500,6 +541,22 @@ function renderIntel(text){
   return jump + out;
 }
 
+/* 시트의 특정 열을 날짜별 아카이브 목록으로 만듭니다 */
+function buildArchive(rows, colIndex, targetId, key){
+  var html = '', cnt = 0;
+  for (var i = rows.length - 1; i >= 0; i--){
+    var d = parseDate(cell(rows[i], 0));
+    var body = cell(rows[i], colIndex);
+    if (!d || !body || !String(body).trim()) continue;
+    cnt++;
+    html += '<div class="arc"><div class="arc-d">' + longKo(d) + '</div>' +
+            '<div class="arc-b">' + md(body) + '</div></div>';
+  }
+  document.getElementById(targetId).innerHTML =
+    html || '<div class="err">보관된 기록이 없습니다.</div>';
+  ARC_COUNT[key] = cnt;
+}
+
 function staleBanner(d, what){
   if (!d) return '';
   var n = daysAgo(d);
@@ -559,19 +616,10 @@ async function loadAll(){
       else document.getElementById('idx').innerHTML =
         '<tr><td colspan="6" class="empty" style="color:var(--dn)">오늘 지표가 아직 등록되지 않았습니다.</td></tr>';
 
-      var arc = '';
-      var cnt = 0;
-      for (var i = rows.length - 1; i >= 0; i--){
-        var ad = parseDate(cell(rows[i], 0));
-        var fx = cell(rows[i], 3);
-        if (!ad || !fx || !String(fx).trim()) continue;
-        cnt++;
-        arc += '<div class="arc"><div class="arc-d">' + longKo(ad) + '</div>' +
-               '<div class="arc-b">' + md(fx) + '</div></div>';
-      }
-      document.getElementById('fx-list').innerHTML =
-        arc || '<div class="err">보관된 기록이 없습니다.</div>';
-      document.getElementById('fx-count').textContent = cnt + '건의 기록';
+      // 아카이브 — 주식(B열)과 환율(D열)을 같은 방식으로 만듭니다
+      buildArchive(rows, 1, 'stock-list', 'stock');
+      buildArchive(rows, 3, 'fx-list',    'fx');
+      setArcCount('stock');
     }
 
     var irows = await fetchTable(GID_INTEL);
