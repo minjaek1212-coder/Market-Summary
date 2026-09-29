@@ -245,7 +245,29 @@ var INDEX_DEFS = [
 ];
 
 var ASSETS = ['Dow Jones','S&P 500','Nasdaq 100','Hang Seng Index',
-              'Nikkei 225','WTI Crude Oil','UST 10yr','JGB 10yr'];
+              'Nikkei 225','WTI (GSCI)','UST 10yr','JGB 10yr'];
+
+/* Global 표 데이터는 F열(엑셀 GLOBAL 탭 → GAS)에서 가져옵니다.
+   F열의 키 → 표에 표시할 이름 */
+var GLOBAL_KEYS = [
+  ['dow','Dow Jones'], ['spx','S&P 500'], ['ndx','Nasdaq 100'], ['hsi','Hang Seng Index'],
+  ['n225','Nikkei 225'], ['crude','WTI (GSCI)'], ['ust10','UST 10yr'], ['jgb10','JGB 10yr']
+];
+
+/* F열 JSON 을 기존 Global 표가 읽는 배열 형식으로 바꿔 줍니다 */
+function globalFromPm(pmRaw){
+  var pm;
+  try { pm = (typeof pmRaw === 'string') ? JSON.parse(pmRaw) : pmRaw; } catch (e) { return '[]'; }
+  if (!pm) return '[]';
+  var arr = [];
+  GLOBAL_KEYS.forEach(function(k){
+    var it = pm[k[0]];
+    if (!it) return;
+    arr.push({ name:k[1], current:it.current, chg1d:it.chg, chg1d_pct:it.chg_pct,
+               chg1wk:it.chg1wk, chg1wk_pct:it.chg1wk_pct });
+  });
+  return JSON.stringify(arr);
+}
 
 /* ---------- 탭 ---------- */
 document.querySelectorAll('.nav button').forEach(function(b){
@@ -570,9 +592,8 @@ async function loadAll(){
       document.getElementById('c-news').innerHTML  = md(cell(last, 2));
       document.getElementById('c-fx').innerHTML    = md(cell(last, 3));
 
-      renderMarkets(cell(last, 4));
-
       var pm = cell(last, 5);
+      renderMarkets(globalFromPm(pm));
       if (pm) renderIndices(pm);
       else document.getElementById('idx').innerHTML =
         '<tr><td colspan="6" class="empty" style="color:var(--dn)">오늘 지표가 아직 등록되지 않았습니다.</td></tr>';
