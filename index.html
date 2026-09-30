@@ -701,9 +701,15 @@ function wlMaLabel(m){
 function wlRender(data){
   var items = data.items || [];
   var up = data.updatedAt ? String(data.updatedAt) : '';
-  var upDate = up ? parseDate(up.replace(' ', 'T')) : null;
+  var upDate = null, m = up.match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+  if (m) upDate = new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
+  else if (up) { var d0 = new Date(up); if (!isNaN(d0.getTime())) upDate = d0; }
+  var upText = upDate
+    ? (upDate.getFullYear() + '-' + String(upDate.getMonth() + 1).padStart(2, '0') + '-' + String(upDate.getDate()).padStart(2, '0') +
+       ' ' + String(upDate.getHours()).padStart(2, '0') + ':' + String(upDate.getMinutes()).padStart(2, '0'))
+    : up;
   document.getElementById('wl-meta').textContent =
-    (up ? up + ' 기준' : '갱신 기록 없음') + ' · 종목 ' + items.length + '개';
+    (upText ? upText + ' 기준' : '갱신 기록 없음') + ' · 종목 ' + items.length + '개';
   setLight('wl-dot', upDate);
 
   var sig = items.filter(function(it){ return it.signals && it.signals.length; });
@@ -737,8 +743,24 @@ async function wlLoad(pw){
   if (!WL_URL) { msg.textContent = '웹앱 주소(WL_URL)가 설정되지 않았습니다.'; return; }
   msg.textContent = '불러오는 중…';
   try {
-    var res = await fetch(WL_URL + '?pw=' + encodeURIComponent(pw));
-    var data = await res.json();
+    var res;
+    try {
+      res = await fetch(WL_URL + '?pw=' + encodeURIComponent(pw));
+    } catch (netErr) {
+      console.error('Watchlist 연결 실패:', netErr);
+      msg.textContent = '서버에 연결하지 못했습니다 (' + (netErr && netErr.message ? netErr.message : '네트워크 오류') +
+                        '). 회사 네트워크나 브라우저 확장 프로그램이 막고 있는지 확인해 주세요.';
+      return;
+    }
+    var raw = await res.text();
+    var data;
+    try { data = JSON.parse(raw); }
+    catch (parseErr) {
+      console.error('Watchlist 응답:', res.status, raw.slice(0, 500));
+      msg.textContent = '서버 응답이 올바르지 않습니다 (HTTP ' + res.status + '): ' +
+                        raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 140);
+      return;
+    }
     if (!data.ok) {
       msg.textContent = data.error || '불러오지 못했습니다.';
       wlStorePw(null); wlPw = null;
