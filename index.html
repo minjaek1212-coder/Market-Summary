@@ -37,7 +37,8 @@ body{
 
 /* nav */
 .nav{position:sticky;top:0;z-index:50;background:rgba(23,22,27,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.nav-in{max-width:760px;margin:0 auto;padding:0 16px;display:flex;gap:2px}
+.nav-in{max-width:760px;margin:0 auto;padding:0 16px;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.nav-in::-webkit-scrollbar{display:none}
 .nav button{
   flex:0 0 auto;background:none;border:none;border-bottom:2px solid transparent;
   color:var(--tx4);font-family:inherit;font-size:13.5px;font-weight:600;
@@ -121,6 +122,36 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
 .arc-b{font-size:13.5px;line-height:1.85;color:var(--body);white-space:pre-wrap;word-break:keep-all}
 .arc-b b{color:var(--tx);font-weight:600}
 
+/* watchlist */
+.wl-lock{max-width:340px;margin:40px auto;text-align:center;background:var(--card);border-radius:14px;padding:28px 22px}
+.wl-lock p{margin:0 0 16px;font-size:13px;color:var(--tx3);line-height:1.7}
+.wl-lock input{width:100%;padding:11px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--tx);font-family:inherit;font-size:15px;text-align:center;margin-bottom:10px}
+.wl-lock input:focus{outline:none;border-color:var(--accent)}
+.wl-lock button{width:100%;padding:11px;background:var(--accent);border:none;border-radius:10px;color:#1a150d;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.wl-lock .wl-msg{margin:10px 0 0;font-size:12.5px;color:var(--dn);min-height:16px}
+.wl-sig{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0}
+.wl-sig+.wl-sig{border-top:1px solid var(--line)}
+.wl-sig:first-child{padding-top:2px}
+.wl-sig:last-child{padding-bottom:2px}
+.wl-sig-nm{font-size:14px;font-weight:600;color:var(--tx2)}
+.wl-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.wl-chip{font-size:11.5px;font-weight:600;padding:4px 9px;border-radius:7px;background:var(--bg);color:var(--tx3);white-space:nowrap}
+.wl-chip.touch{background:var(--accent);color:#1a150d}
+.wl-chip.near{box-shadow:inset 0 0 0 1px var(--accent);color:var(--accent)}
+.wl-card{background:var(--card);border-radius:14px;padding:16px 18px;margin-bottom:11px}
+.wl-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.wl-nm{font-size:15px;font-weight:700;color:var(--tx);letter-spacing:-.02em}
+.wl-nm i{font-style:normal;font-size:11px;color:var(--tx4);font-weight:500;margin-left:6px}
+.wl-px{text-align:right;white-space:nowrap;font-size:15px;font-weight:500}
+.wl-px span{font-size:12px;margin-left:8px}
+.wl-mas{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+.wl-news{list-style:none;margin:10px 0 0;padding:10px 0 0;border-top:1px solid var(--line)}
+.wl-news li{padding:5px 0;font-size:13.5px;line-height:1.55}
+.wl-news a{color:var(--body);text-decoration:none}
+.wl-news a:hover{color:var(--tx)}
+.wl-news small{display:block;font-size:11px;color:var(--tx4);margin-top:2px}
+.wl-empty{font-size:13px;color:var(--tx4)}
+
 @media (max-width:560px){
   body{font-size:14.5px}
   .wrap,.nav-in{padding:0 12px}
@@ -140,6 +171,7 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
   <button class="on" data-p="daily">Daily Market</button>
   <button data-p="intel">Market Intel</button>
   <button data-p="arc">Archive</button>
+  <button data-p="wl">Watchlist</button>
 </div></nav>
 
 <!-- ================= DAILY ================= -->
@@ -231,7 +263,35 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
   </div>
 </div></div>
 
+<!-- ================= WATCHLIST ================= -->
+<div class="page" id="p-wl"><div class="wrap">
+  <div class="head">
+    <h1>Watchlist</h1>
+    <div class="meta"><span class="dot" id="wl-dot"></span><span id="wl-meta">비밀번호를 입력하면 불러옵니다</span></div>
+    <div class="note">보유 종목의 20·120·200일선 터치(장중)·근접(±1%) 신호와 최근 뉴스. 매일 07시대 갱신.</div>
+  </div>
+
+  <div class="wl-lock" id="wl-lock">
+    <p>보유 종목 정보라 비밀번호가 필요합니다.</p>
+    <input type="password" id="wl-pw" placeholder="비밀번호" autocomplete="current-password">
+    <button id="wl-go">열기</button>
+    <p class="wl-msg" id="wl-msg"></p>
+  </div>
+
+  <div id="wl-body" style="display:none">
+    <div class="sec">
+      <div class="sec-h">오늘의 신호</div>
+      <div id="wl-signals"></div>
+    </div>
+    <div id="wl-cards"></div>
+  </div>
+</div></div>
+
 <script>
+/* Watchlist 데이터는 공개 시트가 아니라 GAS 웹앱에서 비밀번호를 확인한 뒤 받아옵니다.
+   Apps Script → 배포 → 웹 앱 URL 을 아래에 넣으세요. */
+var WL_URL = '';
+
 var SHEET_ID = '1SBD-To57_OOvAnB3a4vmN9fURD0wZgIR_hXaoIZPLpc';
 var GID_DAILY = '0';
 var GID_INTEL = '1681828616';
@@ -625,6 +685,89 @@ async function loadAll(){
     showError('데이터를 불러오지 못했습니다. 네트워크를 확인한 뒤 새로고침해 주세요.');
   }
 }
+
+/* ---------- Watchlist ---------- */
+var wlPw = null, wlLoadedAt = 0;
+
+function wlStoredPw(){ try { return sessionStorage.getItem('wl-pw'); } catch (e) { return null; } }
+function wlStorePw(v){ try { if (v) sessionStorage.setItem('wl-pw', v); else sessionStorage.removeItem('wl-pw'); } catch (e) {} }
+
+function wlMaLabel(m){
+  var d = (m.dist == null) ? '--' : ((m.dist > 0 ? '+' : (m.dist < 0 ? '\u2212' : '')) + Math.abs(m.dist).toFixed(1) + '%');
+  var tag = m.state === 'touch' ? ' 터치' : (m.state === 'near' ? ' 근접' : '');
+  return '<span class="wl-chip ' + (m.state || '') + '">' + m.ma + '일 ' + d + tag + '</span>';
+}
+
+function wlRender(data){
+  var items = data.items || [];
+  var up = data.updatedAt ? String(data.updatedAt) : '';
+  var upDate = up ? parseDate(up.replace(' ', 'T')) : null;
+  document.getElementById('wl-meta').textContent =
+    (up ? up + ' 기준' : '갱신 기록 없음') + ' · 종목 ' + items.length + '개';
+  setLight('wl-dot', upDate);
+
+  var sig = items.filter(function(it){ return it.signals && it.signals.length; });
+  document.getElementById('wl-signals').innerHTML = sig.length ? sig.map(function(it){
+    return '<div class="wl-sig"><div class="wl-sig-nm">' + esc(it.name) + '</div><div class="wl-chips">' +
+      it.signals.map(function(s){
+        return '<span class="wl-chip ' + s.type + '">' + s.ma + '일선 ' + (s.type === 'touch' ? '터치' : '근접') + '</span>';
+      }).join('') + '</div></div>';
+  }).join('') : '<div class="wl-empty">오늘은 이평선 신호가 없습니다.</div>';
+
+  document.getElementById('wl-cards').innerHTML = items.map(function(it){
+    var dec = it.market === 'KR' ? 0 : 2;
+    var head = '<div class="wl-top"><div class="wl-nm">' + esc(it.name) + '<i>' + esc(it.code) + '</i></div>';
+    if (it.error) {
+      return '<div class="wl-card">' + head + '</div><div class="wl-empty" style="margin-top:8px">시세를 불러오지 못했습니다 (' + esc(it.error) + ')</div></div>';
+    }
+    var px = '<div class="wl-px num">' + fmt(it.close, dec) +
+             '<span class="' + dirClass(it.chgPct) + '">' + pct(it.chgPct) + '</span></div></div>';
+    var mas = '<div class="wl-mas">' + (it.mas || []).map(wlMaLabel).join('') + '</div>';
+    var news = (it.news && it.news.length) ? '<ul class="wl-news">' + it.news.map(function(n){
+      var link = /^https:\/\//.test(n.link) ? n.link : '#';
+      return '<li><a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">' + esc(n.title) + '</a>' +
+             '<small>' + esc([n.source, n.date].filter(Boolean).join(' \u00B7 ')) + '</small></li>';
+    }).join('') + '</ul>' : '<ul class="wl-news"><li class="wl-empty">최근 7일 뉴스 없음</li></ul>';
+    return '<div class="wl-card">' + head + px + mas + news + '</div>';
+  }).join('');
+}
+
+async function wlLoad(pw){
+  var msg = document.getElementById('wl-msg');
+  if (!WL_URL) { msg.textContent = '웹앱 주소(WL_URL)가 설정되지 않았습니다.'; return; }
+  msg.textContent = '불러오는 중…';
+  try {
+    var res = await fetch(WL_URL + '?pw=' + encodeURIComponent(pw));
+    var data = await res.json();
+    if (!data.ok) {
+      msg.textContent = data.error || '불러오지 못했습니다.';
+      wlStorePw(null); wlPw = null;
+      document.getElementById('wl-lock').style.display = '';
+      document.getElementById('wl-body').style.display = 'none';
+      return;
+    }
+    wlPw = pw; wlStorePw(pw); wlLoadedAt = Date.now();
+    msg.textContent = '';
+    document.getElementById('wl-lock').style.display = 'none';
+    document.getElementById('wl-body').style.display = '';
+    wlRender(data);
+  } catch (e) {
+    console.error('Watchlist 로딩 실패:', e);
+    msg.textContent = '서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+  }
+}
+
+document.getElementById('wl-go').addEventListener('click', function(){
+  var v = document.getElementById('wl-pw').value;
+  if (v) wlLoad(v);
+});
+document.getElementById('wl-pw').addEventListener('keydown', function(e){
+  if (e.key === 'Enter' && this.value) wlLoad(this.value);
+});
+document.querySelector('.nav button[data-p="wl"]').addEventListener('click', function(){
+  var pw = wlPw || wlStoredPw();
+  if (pw && Date.now() - wlLoadedAt > 30 * 60 * 1000) wlLoad(pw);
+});
 
 /* ---------- 갱신 ---------- */
 var lastFetch = 0;
