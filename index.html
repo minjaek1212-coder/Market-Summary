@@ -141,6 +141,9 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
 .wl-chip{font-size:11.5px;font-weight:600;padding:4px 9px;border-radius:7px;background:var(--bg);color:var(--tx3);white-space:nowrap}
 .wl-chip.touch{background:var(--accent);color:#1a150d}
 .wl-chip.near{box-shadow:inset 0 0 0 1px var(--accent);color:var(--accent)}
+.wl-chip.rsi-high{box-shadow:inset 0 0 0 1px var(--dn);color:var(--dn)}
+.wl-chip.rsi-low{box-shadow:inset 0 0 0 1px var(--up);color:var(--up)}
+.wl-chip.rsi{margin-left:6px}
 .wl-card{background:var(--card);border-radius:14px;padding:16px 18px;margin-bottom:11px}
 .wl-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
 .wl-nm{font-size:15px;font-weight:700;color:var(--tx);letter-spacing:-.02em}
@@ -271,7 +274,7 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
   <div class="head">
     <h1>Watchlist</h1>
     <div class="meta"><span class="dot" id="wl-dot"></span><span id="wl-meta">비밀번호를 입력하면 불러옵니다</span></div>
-    <div class="note">보유 종목의 20·120·200일선 터치(장중)·근접(±1%) 신호와 최근 뉴스. 매일 07시대 갱신.</div>
+    <div class="note">보유 종목의 20·120·200일선 터치(장중)·근접(±1%), RSI(14) 과매수(70↑)·과매도(30↓) 신호와 최근 뉴스. 매일 07시대 갱신.</div>
   </div>
 
   <div class="wl-lock" id="wl-lock">
@@ -695,6 +698,19 @@ var wlPw = null, wlLoadedAt = 0;
 function wlStoredPw(){ try { return sessionStorage.getItem('wl-pw'); } catch (e) { return null; } }
 function wlStorePw(v){ try { if (v) sessionStorage.setItem('wl-pw', v); else sessionStorage.removeItem('wl-pw'); } catch (e) {} }
 
+function wlSigText(s){
+  if (s.type === 'rsi-high') return 'RSI ' + s.value + ' 과매수';
+  if (s.type === 'rsi-low')  return 'RSI ' + s.value + ' 과매도';
+  return s.ma + '일선 ' + (s.type === 'touch' ? '터치' : '근접');
+}
+
+function wlRsiChip(v){
+  if (v == null) return '';
+  var cls = v >= 70 ? 'rsi-high' : (v <= 30 ? 'rsi-low' : '');
+  var tag = v >= 70 ? ' 과매수' : (v <= 30 ? ' 과매도' : '');
+  return '<span class="wl-chip rsi ' + cls + '">RSI ' + Number(v).toFixed(1) + tag + '</span>';
+}
+
 function wlMaLabel(m){
   var d = (m.dist == null) ? '--' : ((m.dist > 0 ? '+' : (m.dist < 0 ? '\u2212' : '')) + Math.abs(m.dist).toFixed(1) + '%');
   var tag = m.state === 'touch' ? ' 터치' : (m.state === 'near' ? ' 근접' : '');
@@ -719,9 +735,9 @@ function wlRender(data){
   document.getElementById('wl-signals').innerHTML = sig.length ? sig.map(function(it){
     return '<div class="wl-sig"><div class="wl-sig-nm">' + esc(it.name) + '</div><div class="wl-chips">' +
       it.signals.map(function(s){
-        return '<span class="wl-chip ' + s.type + '">' + s.ma + '일선 ' + (s.type === 'touch' ? '터치' : '근접') + '</span>';
+        return '<span class="wl-chip ' + esc(s.type) + '">' + esc(wlSigText(s)) + '</span>';
       }).join('') + '</div></div>';
-  }).join('') : '<div class="wl-empty">오늘은 이평선 신호가 없습니다.</div>';
+  }).join('') : '<div class="wl-empty">오늘은 신호가 없습니다.</div>';
 
   document.getElementById('wl-cards').innerHTML = items.map(function(it){
     var dec = it.market === 'KR' ? 0 : 2;
@@ -731,7 +747,7 @@ function wlRender(data){
     }
     var px = '<div class="wl-px num">' + fmt(it.close, dec) +
              '<span class="' + dirClass(it.chgPct) + '">' + pct(it.chgPct) + '</span></div></div>';
-    var mas = '<div class="wl-mas">' + (it.mas || []).map(wlMaLabel).join('') + '</div>';
+    var mas = '<div class="wl-mas">' + (it.mas || []).map(wlMaLabel).join('') + wlRsiChip(it.rsi) + '</div>';
     var news = (it.news && it.news.length) ? '<ul class="wl-news">' + it.news.map(function(n){
       var link = /^https:\/\//.test(n.link) ? n.link : '#';
       return '<li><a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">' + esc(n.title) + '</a>' +
