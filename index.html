@@ -144,6 +144,10 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
 .wl-chip.rsi-high{box-shadow:inset 0 0 0 1px var(--dn);color:var(--dn)}
 .wl-chip.rsi-low{box-shadow:inset 0 0 0 1px var(--up);color:var(--up)}
 .wl-chip.rsi{margin-left:6px}
+.wl-chip.earn{box-shadow:inset 0 0 0 1px var(--tx4);color:var(--tx2)}
+.wl-chip.earn.soon{background:var(--warn-bg);box-shadow:inset 0 0 0 1px var(--warn-tx);color:var(--warn-tx)}
+.wl-chip.est{background:none;color:var(--tx4);padding-left:2px;padding-right:2px}
+.wl-ed{font-size:12.5px;color:var(--tx3);white-space:nowrap}
 .wl-card{background:var(--card);border-radius:14px;padding:16px 18px;margin-bottom:11px}
 .wl-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
 .wl-nm{font-size:15px;font-weight:700;color:var(--tx);letter-spacing:-.02em}
@@ -274,7 +278,7 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
   <div class="head">
     <h1>Watchlist</h1>
     <div class="meta"><span class="dot" id="wl-dot"></span><span id="wl-meta">비밀번호를 입력하면 불러옵니다</span></div>
-    <div class="note">보유 종목의 20·120·200일선 터치(장중)·근접(±1%), RSI(14) 과매수(70↑)·과매도(30↓) 신호와 최근 뉴스. 매일 07시대 갱신.</div>
+    <div class="note">보유 종목의 20·120·200일선 터치(장중)·근접(±1%), RSI(14) 과매수(70↑)·과매도(30↓) 신호, 7일 내 실적발표, 최근 뉴스. 매일 07시대 갱신.</div>
   </div>
 
   <div class="wl-lock" id="wl-lock">
@@ -288,6 +292,10 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
     <div class="sec">
       <div class="sec-h">오늘의 신호</div>
       <div id="wl-signals"></div>
+    </div>
+    <div class="sec">
+      <div class="sec-h">실적발표 · 7일 내</div>
+      <div id="wl-earn"></div>
     </div>
     <div id="wl-cards"></div>
   </div>
@@ -717,6 +725,27 @@ function wlMaLabel(m){
   return '<span class="wl-chip ' + (m.state || '') + '">' + m.ma + '일 ' + d + tag + '</span>';
 }
 
+/* 실적발표: 날짜는 거래소 현지 기준(미국 종목은 미국 날짜). D-day 는 보는 날 기준으로 다시 계산 */
+var WL_EARN_DAYS = 7;
+function wlDday(dateStr){
+  var m = String(dateStr || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return null;
+  var now = new Date();
+  return Math.round((Date.UTC(+m[1], +m[2] - 1, +m[3]) - Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000);
+}
+function wlEarnDate(e){
+  var m = e.date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  var w = '일월화수목금토'.charAt(new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])).getUTCDay());
+  return (+m[2]) + '/' + (+m[3]) + '(' + w + ')' + (e.time ? ' ' + e.time : '');
+}
+function wlEarnChip(e, withDate){
+  var d = wlDday(e && e.date);
+  if (d == null || d < 0 || d > WL_EARN_DAYS) return '';
+  var dd = d === 0 ? 'D-Day' : 'D-' + d;
+  return '<span class="wl-chip earn' + (d <= 1 ? ' soon' : '') + '">실적 ' + dd + (withDate ? ' \u00B7 ' + esc(wlEarnDate(e)) : '') + '</span>' +
+         (e.estimate ? '<span class="wl-chip est">예상</span>' : '');
+}
+
 function wlRender(data){
   var items = data.items || [];
   var up = data.updatedAt ? String(data.updatedAt) : '';
@@ -739,6 +768,14 @@ function wlRender(data){
       }).join('') + '</div></div>';
   }).join('') : '<div class="wl-empty">오늘은 신호가 없습니다.</div>';
 
+  var earn = items.filter(function(it){ var d = wlDday(it.earnings && it.earnings.date); return d != null && d >= 0 && d <= WL_EARN_DAYS; })
+    .sort(function(a, b){ return a.earnings.date < b.earnings.date ? -1 : (a.earnings.date > b.earnings.date ? 1 : 0); });
+  document.getElementById('wl-earn').innerHTML = earn.length ? earn.map(function(it){
+    var us = it.market === 'US' ? ' <span class="wl-ed">미국 현지</span>' : '';
+    return '<div class="wl-sig"><div class="wl-sig-nm">' + esc(it.name) + '</div><div class="wl-chips">' +
+      '<span class="wl-ed">' + esc(wlEarnDate(it.earnings)) + '</span>' + us + wlEarnChip(it.earnings, false) + '</div></div>';
+  }).join('') : '<div class="wl-empty">7일 안에 예정된 실적발표가 없습니다.</div>';
+
   document.getElementById('wl-cards').innerHTML = items.map(function(it){
     var dec = it.market === 'KR' ? 0 : 2;
     var head = '<div class="wl-top"><div class="wl-nm">' + esc(it.name) + '<i>' + esc(it.code) + '</i></div>';
@@ -747,8 +784,8 @@ function wlRender(data){
     }
     var px = '<div class="wl-px num">' + fmt(it.close, dec) +
              '<span class="' + dirClass(it.chgPct) + '">' + pct(it.chgPct) + '</span></div></div>';
-    var mas = '<div class="wl-mas">' + (it.mas || []).map(wlMaLabel).join('') + wlRsiChip(it.rsi) + '</div>';
-    var news = (it.news && it.news.length) ? '<ul class="wl-news">' + it.news.map(function(n){
+    var mas = '<div class="wl-mas">' + (it.mas || []).map(wlMaLabel).join('') + wlRsiChip(it.rsi) + (it.earnings ? wlEarnChip(it.earnings, true) : '') + '</div>';
+    var news = it.etf ? '' : (it.news && it.news.length) ? '<ul class="wl-news">' + it.news.map(function(n){
       var link = /^https:\/\//.test(n.link) ? n.link : '#';
       return '<li><a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">' + esc(n.title) + '</a>' +
              '<small>' + esc([n.source, n.date].filter(Boolean).join(' \u00B7 ')) + '</small></li>';
