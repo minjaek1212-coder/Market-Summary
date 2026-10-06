@@ -150,6 +150,25 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
 .wl-chip.earn.soon{background:var(--warn-bg);box-shadow:inset 0 0 0 1px var(--warn-tx);color:var(--warn-tx)}
 .wl-chip.est{background:none;color:var(--tx4);padding-left:2px;padding-right:2px}
 .wl-ed{font-size:12.5px;color:var(--tx3);white-space:nowrap}
+.wl-wk-note{font-size:11.5px;color:var(--tx4);margin:-6px 0 12px}
+.wl-day+.wl-day{margin-top:16px}
+.wl-day-h{font-size:12px;font-weight:600;color:var(--tx3);margin-bottom:4px}
+.wl-day-h b{font-size:10.5px;font-weight:700;color:#1a150d;background:var(--accent);padding:1px 6px;border-radius:5px;margin-left:6px}
+.wl-ev{display:flex;gap:10px;align-items:flex-start;padding:8px 0}
+.wl-ev+.wl-ev{border-top:1px solid var(--line)}
+.wl-ev-t{width:40px;flex:none;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--tx3);padding-top:2px}
+.wl-ev-tag{flex:none;min-width:30px;text-align:center;font-size:10.5px;font-weight:700;padding:2px 6px;border-radius:5px;background:var(--bg);color:var(--tx3);margin-top:1px}
+.wl-ev-tag.k-earn{color:var(--accent)}
+.wl-ev-tag.k-event{color:var(--tx2)}
+.wl-ev-tag.k-ai{background:none;box-shadow:inset 0 0 0 1px var(--line);color:var(--tx2)}
+.wl-ev small a{color:var(--tx3);text-decoration:none;margin-left:6px}
+.wl-ev small a:hover{color:var(--tx)}
+.wl-wk-div{font-size:12px;font-weight:700;color:var(--accent);margin:22px 0 10px;padding-top:14px;border-top:1px dashed var(--line)}
+.wl-ev-b{min-width:0}
+.wl-ev-ti{font-size:13.5px;color:var(--tx2);line-height:1.45}
+.wl-ev.mine .wl-ev-ti{color:var(--tx);font-weight:600}
+.wl-ev small{display:block;font-size:11.5px;color:var(--tx4);margin-top:2px;line-height:1.45}
+.wl-own{font-size:10.5px;font-weight:700;color:#1a150d;background:var(--accent);padding:1px 6px;border-radius:5px;margin-left:6px;vertical-align:1px}
 .wl-card{background:var(--card);border-radius:14px;padding:16px 18px;margin-bottom:11px}
 .wl-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
 .wl-nm{font-size:15px;font-weight:700;color:var(--tx);letter-spacing:-.02em}
@@ -280,7 +299,7 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
   <div class="head">
     <h1>Watchlist</h1>
     <div class="meta"><span class="dot" id="wl-dot"></span><span id="wl-meta">비밀번호를 입력하면 불러옵니다</span></div>
-    <div class="note">보유 종목의 20·120·200일선 종가 기준 상승·하락 돌파, RSI(14) 과매수(70↑)·과매도(30↓) 신호, 7일 내 실적발표, 최근 뉴스. 매일 07시대 갱신.</div>
+    <div class="note">보유 종목의 20·120·200일선 종가 기준 상승·하락 돌파, RSI(14) 과매수(70↑)·과매도(30↓) 신호, 금주·차주 매크로·실적·이벤트 일정, 최근 뉴스. 매일 07시대 갱신.</div>
   </div>
 
   <div class="wl-lock" id="wl-lock">
@@ -296,8 +315,9 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
       <div id="wl-signals"></div>
     </div>
     <div class="sec">
-      <div class="sec-h">실적발표 · 7일 내</div>
-      <div id="wl-earn"></div>
+      <div class="sec-h">금주·차주 일정</div>
+      <div class="wl-wk-note" id="wl-wk-note">시각은 한국시간 · 미국 실적은 현지 날짜 기준(장후 발표는 한국 다음 날 아침) · AI 표시 일정은 출처로 날짜 확인</div>
+      <div id="wl-week"></div>
     </div>
     <div id="wl-cards"></div>
   </div>
@@ -759,6 +779,40 @@ function wlDateTag(d){
   return d ? '<i style="font-style:normal;font-size:11px;color:var(--tx4);font-weight:500;margin-left:6px">' + esc(wlShortDate(d)) + ' 종가</i>' : '';
 }
 
+var WL_COUNTRY = { USD: '美', JPY: '日', EUR: 'EU', CNY: '中', GBP: '英', All: '전체' };
+function wlRenderWeek(week){
+  var el = document.getElementById('wl-week');
+  if (!week || !week.items) { el.innerHTML = '<div class="wl-empty">일정 데이터가 아직 없습니다.</div>'; return; }
+  var now = new Date();
+  var today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  var list = week.items.filter(function(e){ return e.date >= today; });
+  if (!list.length) { el.innerHTML = '<div class="wl-empty">남은 주요 일정이 없습니다.</div>'; return; }
+  if (week.aiAt) document.getElementById('wl-wk-note').textContent =
+    '시각은 한국시간 · 미국 실적은 현지 날짜 기준(장후 발표는 한국 다음 날 아침) · AI 일정 ' + week.aiAt + ' 갱신, 출처로 날짜 확인';
+  var days = [], by = {}, divided = false;
+  list.forEach(function(e){ if (!by[e.date]) { by[e.date] = []; days.push(e.date); } by[e.date].push(e); });
+  days.sort();
+  days.forEach(function(d){ by[d].sort(function(a, b){ return (a.time || '') < (b.time || '') ? -1 : (a.time || '') > (b.time || '') ? 1 : 0; }); });
+  el.innerHTML = days.map(function(d){
+    var m = d.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    var w = '일월화수목금토'.charAt(new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])).getUTCDay());
+    var head = '<div class="wl-day-h">' + (+m[2]) + '/' + (+m[3]) + ' (' + w + ')' + (d === today ? '<b>오늘</b>' : '') + '</div>';
+    var div = '';
+    if (!divided && week.thisEnd && d > week.thisEnd) { divided = true; div = '<div class="wl-wk-div">다음 주</div>'; }
+    return div + '<div class="wl-day">' + head + by[d].map(function(e){
+      var tag = e.kind === 'macro' ? (WL_COUNTRY[e.country] || e.country) : e.kind === 'earn' ? '실적' :
+                e.kind === 'ai' ? (e.category || 'AI') : '일정';
+      var subTxt = [e.sub, e.status === '예상' ? '예상' : e.status === '미확인' ? '날짜 미확인' : ''].filter(Boolean).join(' · ');
+      var src = (e.source && /^https?:\/\//.test(e.source)) ? '<a href="' + esc(e.source) + '" target="_blank" rel="noopener noreferrer">출처 ↗</a>' : '';
+      return '<div class="wl-ev' + (e.mine ? ' mine' : '') + '">' +
+        '<span class="wl-ev-t">' + esc(e.time || '') + '</span>' +
+        '<span class="wl-ev-tag k-' + esc(e.kind) + '">' + esc(tag) + '</span>' +
+        '<div class="wl-ev-b"><div class="wl-ev-ti">' + esc(e.title) + (e.mine ? '<span class="wl-own">보유</span>' : '') + '</div>' +
+        ((subTxt || src) ? '<small>' + esc(subTxt) + src + '</small>' : '') + '</div></div>';
+    }).join('') + '</div>';
+  }).join('');
+}
+
 function wlRender(data){
   var items = data.items || [];
   var up = data.updatedAt ? String(data.updatedAt) : '';
@@ -781,13 +835,7 @@ function wlRender(data){
       }).join('') + '</div></div>';
   }).join('') : '<div class="wl-empty">오늘은 신호가 없습니다.</div>';
 
-  var earn = items.filter(function(it){ var d = wlDday(it.earnings && it.earnings.date); return d != null && d >= 0 && d <= WL_EARN_DAYS; })
-    .sort(function(a, b){ return a.earnings.date < b.earnings.date ? -1 : (a.earnings.date > b.earnings.date ? 1 : 0); });
-  document.getElementById('wl-earn').innerHTML = earn.length ? earn.map(function(it){
-    var us = it.market === 'US' ? ' <span class="wl-ed">미국 현지</span>' : '';
-    return '<div class="wl-sig"><div class="wl-sig-nm">' + esc(it.name) + '</div><div class="wl-chips">' +
-      '<span class="wl-ed">' + esc(wlEarnDate(it.earnings)) + '</span>' + us + wlEarnChip(it.earnings, false) + '</div></div>';
-  }).join('') : '<div class="wl-empty">7일 안에 예정된 실적발표가 없습니다.</div>';
+  wlRenderWeek(data.week);
 
   document.getElementById('wl-cards').innerHTML = items.map(function(it){
     var dec = it.market === 'KR' ? 0 : 2;
