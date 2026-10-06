@@ -114,6 +114,32 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
 .seg-btn:hover{color:var(--tx2)}
 .seg-btn.on{background:var(--accent);color:#1a150d}
 .arc-pane{display:none}
+/* lottery */
+.lt-tools{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;margin-bottom:12px}
+.lt-seg{display:flex;gap:6px;flex-wrap:wrap}
+.lt-seg-btn{flex:0 0 auto;background:var(--card);border:none;border-radius:10px;color:var(--tx3);font-family:inherit;
+  font-size:12.5px;font-weight:600;padding:8px 14px;cursor:pointer}
+.lt-seg-btn.on{background:var(--accent);color:#1a150d}
+.lt-sum{font-size:12.5px;color:var(--tx3);margin:0 0 12px}
+.lt-card{background:var(--card);border-radius:14px;padding:16px 18px;margin-bottom:11px}
+.lt-top{display:flex;align-items:center;gap:8px}
+.lt-kind{flex:none;font-size:10.5px;font-weight:700;padding:3px 7px;border-radius:6px;background:var(--bg);color:var(--tx2)}
+.lt-kind.k-remndr{background:var(--accent);color:#1a150d}
+.lt-kind.k-ipo{box-shadow:inset 0 0 0 1px var(--up);background:none;color:var(--up)}
+.lt-nm{font-size:15px;font-weight:700;color:var(--tx);letter-spacing:-.02em;flex:1;min-width:0}
+.lt-top a{font-size:12px;color:var(--tx3);text-decoration:none;white-space:nowrap}
+.lt-top a:hover{color:var(--tx)}
+.lt-sub{font-size:12px;color:var(--tx4);margin-top:5px}
+.lt-dates{font-size:12.5px;color:var(--tx2);margin-top:8px;line-height:1.6}
+.lt-dd{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:5px;margin-left:6px;background:var(--bg);color:var(--tx3)}
+.lt-dd.soon{background:var(--warn-bg);color:var(--warn-tx);box-shadow:inset 0 0 0 1px var(--warn-tx)}
+.lt-types{margin-top:10px;border-top:1px solid var(--line)}
+.lt-ty{display:grid;grid-template-columns:52px 1fr auto;gap:2px 10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--tx3)}
+.lt-ty:last-child{border-bottom:none}
+.lt-ty .t{font-family:'JetBrains Mono',monospace;color:var(--tx2);font-weight:600}
+.lt-ty .g{font-family:'JetBrains Mono',monospace;font-weight:600;text-align:right;white-space:nowrap}
+.lt-ty small{grid-column:2 / 4;font-size:11px;color:var(--tx4)}
+.lt-warn{font-size:11.5px;color:var(--warn-tx);margin-top:8px}
 .arc-pane.on{display:block}
 
 /* archive */
@@ -201,8 +227,9 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
 <nav class="nav"><div class="nav-in">
   <button class="on" data-p="daily">Daily Market</button>
   <button data-p="intel">Market Intel</button>
-  <button data-p="arc">Archive</button>
   <button data-p="wl">Watchlist</button>
+  <button data-p="lt">Lottery</button>
+  <button data-p="arc">Archive</button>
 </div></nav>
 
 <!-- ================= DAILY ================= -->
@@ -291,6 +318,37 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
 
   <div class="arc-pane" id="a-fx">
     <div class="sec" id="fx-list"><div class="loading">불러오는 중…</div></div>
+  </div>
+</div></div>
+
+<!-- ================= LOTTERY ================= -->
+<div class="page" id="p-lt"><div class="wrap">
+  <div class="head">
+    <h1>Lottery</h1>
+    <div class="meta"><span class="dot" id="lt-dot"></span><span id="lt-meta">비밀번호를 입력하면 불러옵니다</span></div>
+    <div class="note">서울·경기 아파트 청약 중 추첨 물량, 무순위(줍줍), 공모주 균등배정. 공모주 예상 수익은 AI 추정치라 공고문으로 꼭 확인. 매일 07시대 갱신 (공모주는 월요일).</div>
+  </div>
+  <div class="wl-lock" id="lt-lock">
+    <p>Watchlist 와 같은 비밀번호입니다.</p>
+    <input type="password" id="lt-pw" placeholder="비밀번호" autocomplete="current-password">
+    <button id="lt-go">열기</button>
+    <p class="wl-msg" id="lt-msg"></p>
+  </div>
+  <div id="lt-body" style="display:none">
+    <div class="lt-tools">
+      <div class="lt-seg" id="lt-filter">
+        <button class="lt-seg-btn on" data-f="all">전체</button>
+        <button class="lt-seg-btn" data-f="remndr">줍줍</button>
+        <button class="lt-seg-btn" data-f="apt">청약</button>
+        <button class="lt-seg-btn" data-f="ipo">공모주</button>
+      </div>
+      <div class="lt-seg" id="lt-sort">
+        <button class="lt-seg-btn on" data-s="end">마감순</button>
+        <button class="lt-seg-btn" data-s="draw">추첨 많은순</button>
+      </div>
+    </div>
+    <p class="lt-sum" id="lt-sum"></p>
+    <div id="lt-list"></div>
   </div>
 </div></div>
 
@@ -907,6 +965,134 @@ document.getElementById('wl-pw').addEventListener('keydown', function(e){
 document.querySelector('.nav button[data-p="wl"]').addEventListener('click', function(){
   var pw = wlPw || wlStoredPw();
   if (pw && Date.now() - wlLoadedAt > 30 * 60 * 1000) wlLoad(pw);
+});
+
+/* ---------- Lottery ---------- */
+var ltData = null, ltLoadedAt = 0, ltFilter = 'all', ltSort = 'end';
+function ltAttr(s){ return esc(s).replace(/"/g, '&quot;'); }
+function ltMan(v){                       // 만원 → 8.9억 / 3,500만
+  if (v == null || isNaN(v)) return '?';
+  var a = Math.abs(v), s = v < 0 ? '−' : '';
+  return s + (a >= 10000 ? (Math.round(a / 1000) / 10) + '억' : Math.round(a).toLocaleString() + '만');
+}
+function ltWon(v){                       // 원 → 2.5만 / 12,500원
+  if (v == null || isNaN(v)) return '?';
+  var a = Math.abs(v), s = v < 0 ? '−' : '';
+  return s + (a >= 10000 ? (Math.round(a / 1000) / 10) + '만' : Math.round(a).toLocaleString()) + '원';
+}
+function ltMd(d){ var m = String(d || '').match(/^\d{4}-(\d{2})-(\d{2})/); return m ? (+m[1]) + '/' + (+m[2]) : ''; }
+function ltRange(a, b){ a = ltMd(a); b = ltMd(b); return a && b && a !== b ? a + '~' + b : (a || b || '?'); }
+function ltDraws(x){   // 추첨 세대 합계 (공모주는 맨 뒤)
+  if (x.kind === 'ipo') return -1;
+  return (x.types || []).reduce(function(m, t){ return m + (Number(t.draw) || 0); }, 0);
+}
+function ltDd(x){
+  var endD = wlDday(x.end), winD = wlDday(x.winner || x.listing);
+  if (endD != null && endD >= 0) return '<span class="lt-dd' + (endD <= 2 ? ' soon' : '') + '">' + (endD === 0 ? '오늘 마감' : '마감 D-' + endD) + '</span>';
+  if (winD != null && winD >= 0) return '<span class="lt-dd">' + (x.kind === 'ipo' ? '상장 ' : '발표 ') + (winD === 0 ? '오늘' : 'D-' + winD) + '</span>';
+  return '';
+}
+
+function ltCard(x){
+  var link = function(u, t){ return /^https?:\/\//.test(u || '') ? '<a href="' + ltAttr(u) + '" target="_blank" rel="noopener noreferrer">' + t + '</a>' : ''; };
+  if (x.kind === 'ipo') {
+    var p = x.price ? ltWon(x.price) : (x.bandLow ? ltWon(x.bandLow) + '~' + ltWon(x.bandHigh) + ' (희망)' : '?');
+    var g = (x.gainLow != null && x.gainHigh != null) ? (ltWon(x.gainLow) + ' ~ ' + ltWon(x.gainHigh)) : '?';
+    var gc = x.gainHigh != null ? (x.gainHigh >= 0 ? 'up' : 'dn') : '';
+    return '<div class="lt-card"><div class="lt-top"><span class="lt-kind k-ipo">공모주</span><div class="lt-nm">' + esc(x.name) + '</div>' + link(x.source, '출처 ↗') + '</div>' +
+      '<div class="lt-sub">' + esc([x.market, x.brokers].filter(Boolean).join(' · ')) + '</div>' +
+      '<div class="lt-dates">청약 ' + ltRange(x.start, x.end) + (x.refund ? ' · 환불 ' + ltMd(x.refund) : '') + (x.listing ? ' · 상장 ' + ltMd(x.listing) : '') + ltDd(x) + '</div>' +
+      '<div class="lt-types">' +
+        '<div class="lt-ty"><span class="t">균등</span><span>공모가 ' + p + ' · 최소 ' + (x.minShares || 10) + '주 증거금 ' + ltWon(x.deposit) + '</span><span class="g ' + gc + '">' + g + '</span>' +
+        '<small>' + esc(['예상 ' + (x.expShares || 1) + '주 배정', x.retLow != null ? '상장일 ' + x.retLow + '~' + x.retHigh + '%' : '', x.inst ? '수요예측 ' + x.inst : '', x.lockup ? '확약 ' + x.lockup : ''].filter(Boolean).join(' · ')) + '</small></div>' +
+      '</div>' + (x.note ? '<div class="lt-sub" style="margin-top:8px">' + esc(x.note) + '</div>' : '') + '</div>';
+  }
+  var isRem = x.kind === 'remndr';
+  var tag = isRem ? '줍줍' : '청약';
+  var sub = [x.sido, (x.addr || '').split(/\s+/).slice(1, 3).join(' '), isRem ? x.sub : x.region + (x.cap ? ' · 분양가상한제' : '')].filter(Boolean).join(' · ');
+  var dates = isRem
+    ? '접수 ' + ltRange(x.start, x.end) + ' · 발표 ' + ltMd(x.winner) + (x.contract ? ' · 계약 ' + ltMd(x.contract) : '')
+    : (x.special && x.special[0] ? '특공 ' + ltRange(x.special[0], x.special[1]) + ' · ' : '') +
+      '1순위 ' + ltRange(x.rank1 && x.rank1[0], x.rank1 && x.rank1[1]) + ' · 발표 ' + ltMd(x.winner) + (x.contract ? ' · 계약 ' + ltMd(x.contract) : '');
+  var rows = (x.types || []).map(function(t){
+    var g = t.gain != null ? '<span class="g ' + (t.gain >= 0 ? 'up' : 'dn') + '">' + (t.gain >= 0 ? '+' : '') + ltMan(t.gain) + '</span>'
+                           : '<span class="g">' + (t.price ? ltMan(t.price) : '') + '</span>';
+    var d = isRem ? (t.supply ? t.supply + '세대 · 100% 추첨' : '100% 추첨') : '추첨 약 ' + t.draw + '세대 (일반 ' + t.supply + ')';
+    var info = t.est ? ['분양가 ' + ltMan(t.price), '시세 ' + ltMan(t.est) + ' (' + t.basis + ' ' + t.comps + '건)'].join(' · ')
+                     : (t.price ? '분양가 (최고가 기준)' : '');
+    return '<div class="lt-ty"><span class="t">' + esc(t.ty) + '</span><span>' + esc(d) + '</span>' + g + '<small>' + esc(info) + '</small></div>';
+  }).join('');
+  return '<div class="lt-card"><div class="lt-top"><span class="lt-kind k-' + x.kind + '">' + tag + '</span><div class="lt-nm">' + esc(x.name) + '</div>' + link(x.url, '공고 ↗') + '</div>' +
+    '<div class="lt-sub">' + esc(sub) + '</div>' +
+    '<div class="lt-dates">' + dates + ltDd(x) + '</div>' +
+    (rows ? '<div class="lt-types">' + rows + '</div>' : '') +
+    (x.warn ? '<div class="lt-warn">' + esc(x.warn) + '</div>' : '') + '</div>';
+}
+
+function ltRender(){
+  if (!ltData) return;
+  var all = (ltData.items || []).concat(ltData.ipo || []).filter(function(x){
+    var e = wlDday(x.end), w = wlDday(x.winner || x.listing);
+    return (e != null && e >= 0) || (w != null && w >= 0);
+  });
+  var list = all.filter(function(x){ return ltFilter === 'all' || x.kind === ltFilter; });
+  list.sort(ltSort === 'draw'
+    ? function(a, b){ return ltDraws(b) - ltDraws(a); }
+    : function(a, b){
+        var ka = (wlDday(a.end) >= 0 ? a.end : '9' + (a.winner || a.listing || '')), kb = (wlDday(b.end) >= 0 ? b.end : '9' + (b.winner || b.listing || ''));
+        return ka < kb ? -1 : ka > kb ? 1 : 0;
+      });
+  var cnt = function(k){ return all.filter(function(x){ return x.kind === k; }).length; };
+  var soon = all.filter(function(x){ var d = wlDday(x.end); return d != null && d >= 0 && d <= 7; }).length;
+  document.getElementById('lt-sum').textContent = '줍줍 ' + cnt('remndr') + ' · 청약 ' + cnt('apt') + ' · 공모주 ' + cnt('ipo') + ' · 7일 안에 마감 ' + soon + '건' +
+    (ltData.ipoAt ? ' · 공모주 ' + ltData.ipoAt + ' 갱신' : '');
+  document.getElementById('lt-list').innerHTML = list.length ? list.map(ltCard).join('') : '<div class="wl-empty">조건에 맞는 일정이 없습니다.</div>';
+}
+
+async function ltLoad(pw){
+  var msg = document.getElementById('lt-msg');
+  msg.textContent = '불러오는 중…';
+  try {
+    var res = await fetch(WL_URL + '?view=lottery&pw=' + encodeURIComponent(pw));
+    var raw = await res.text(), data;
+    try { data = JSON.parse(raw); } catch (e) { msg.textContent = '서버 응답이 올바르지 않습니다 (HTTP ' + res.status + ')'; return; }
+    if (!data.ok) {
+      msg.textContent = data.error || '불러오지 못했습니다.';
+      document.getElementById('lt-lock').style.display = '';
+      document.getElementById('lt-body').style.display = 'none';
+      return;
+    }
+    wlPw = pw; wlStorePw(pw); ltLoadedAt = Date.now();
+    msg.textContent = '';
+    document.getElementById('lt-lock').style.display = 'none';
+    document.getElementById('lt-body').style.display = '';
+    ltData = data;
+    var up = String(data.updatedAt || ''), m = up.match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+    document.getElementById('lt-meta').textContent = (up ? up + ' 기준' : '갱신 기록 없음');
+    setLight('lt-dot', m ? new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) : null);
+    ltRender();
+  } catch (e) {
+    console.error('Lottery 로딩 실패:', e);
+    msg.textContent = '서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+  }
+}
+document.getElementById('lt-go').addEventListener('click', function(){ var v = document.getElementById('lt-pw').value; if (v) ltLoad(v); });
+document.getElementById('lt-pw').addEventListener('keydown', function(e){ if (e.key === 'Enter' && this.value) ltLoad(this.value); });
+document.querySelector('.nav button[data-p="lt"]').addEventListener('click', function(){
+  var pw = wlPw || wlStoredPw();
+  if (pw && Date.now() - ltLoadedAt > 30 * 60 * 1000) ltLoad(pw);
+});
+document.querySelectorAll('#lt-filter .lt-seg-btn').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.querySelectorAll('#lt-filter .lt-seg-btn').forEach(function(x){ x.classList.remove('on'); });
+    b.classList.add('on'); ltFilter = b.dataset.f; ltRender();
+  });
+});
+document.querySelectorAll('#lt-sort .lt-seg-btn').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.querySelectorAll('#lt-sort .lt-seg-btn').forEach(function(x){ x.classList.remove('on'); });
+    b.classList.add('on'); ltSort = b.dataset.s; ltRender();
+  });
 });
 
 /* ---------- 갱신 ---------- */
