@@ -751,6 +751,14 @@ function wlEarnChip(e, withDate){
          (e.estimate ? '<span class="wl-chip est">예상</span>' : '');
 }
 
+function wlShortDate(d){
+  var m = String(d || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? (+m[2]) + '/' + (+m[3]) : String(d || '');
+}
+function wlDateTag(d){
+  return d ? '<i style="font-style:normal;font-size:11px;color:var(--tx4);font-weight:500;margin-left:6px">' + esc(wlShortDate(d)) + ' 종가</i>' : '';
+}
+
 function wlRender(data){
   var items = data.items || [];
   var up = data.updatedAt ? String(data.updatedAt) : '';
@@ -767,7 +775,7 @@ function wlRender(data){
 
   var sig = items.filter(function(it){ return it.signals && it.signals.length; });
   document.getElementById('wl-signals').innerHTML = sig.length ? sig.map(function(it){
-    return '<div class="wl-sig"><div class="wl-sig-nm">' + esc(it.name) + '</div><div class="wl-chips">' +
+    return '<div class="wl-sig"><div class="wl-sig-nm">' + esc(it.name) + wlDateTag(it.date) + '</div><div class="wl-chips">' +
       it.signals.map(function(s){
         return '<span class="wl-chip ' + esc(s.type) + '">' + esc(wlSigText(s)) + '</span>';
       }).join('') + '</div></div>';
@@ -783,7 +791,8 @@ function wlRender(data){
 
   document.getElementById('wl-cards').innerHTML = items.map(function(it){
     var dec = it.market === 'KR' ? 0 : 2;
-    var head = '<div class="wl-top"><div class="wl-nm">' + esc(it.name) + '<i>' + esc(it.code) + '</i></div>';
+    var head = '<div class="wl-top"><div class="wl-nm">' + esc(it.name) + '<i>' + esc(it.code) +
+               (it.date ? ' \u00B7 ' + esc(wlShortDate(it.date)) + ' 종가' : '') + '</i></div>';
     if (it.error) {
       return '<div class="wl-card">' + head + '</div><div class="wl-empty" style="margin-top:8px">시세를 불러오지 못했습니다 (' + esc(it.error) + ')</div></div>';
     }
