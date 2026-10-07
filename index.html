@@ -105,6 +105,18 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
 .i-p{margin:0 0 12px;color:var(--body);font-size:14.5px;line-height:1.9;word-break:keep-all}
 .i-p:last-child{margin-bottom:0}
 .i-p b{color:var(--tx);font-weight:600}
+.i-ul{list-style:none;margin:0 0 6px;padding:0}
+.i-ul li{position:relative;padding:0 0 0 15px;margin:0 0 9px;color:var(--body);font-size:14.5px;line-height:1.75;word-break:keep-all}
+.i-ul li:before{content:'';position:absolute;left:2px;top:.72em;width:5px;height:5px;border-radius:50%;background:var(--tx4)}
+.i-ul li:last-child{margin-bottom:0}
+.i-ul b,.i-p b{color:var(--tx);font-weight:600}
+.i-who{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;margin:20px 0 10px;padding-top:16px;border-top:1px solid var(--line)}
+.i-who:first-child{margin-top:0;padding-top:0;border-top:none}
+.i-who .n{font-size:14px;font-weight:700;color:var(--tx2)}
+.i-who .tag{font-size:11px;font-weight:600;color:var(--accent);background:var(--bg);padding:2px 7px;border-radius:6px}
+.i-who .sub{font-size:12.5px;color:var(--tx3)}
+.i-up{color:var(--up)}
+.i-dn{color:var(--dn)}
 
 /* archive toggle */
 .seg{display:flex;gap:6px;margin-bottom:11px}
@@ -602,7 +614,7 @@ var INTEL_SECTIONS = [
   { label:'미국 증시',  match:'미국 주식시장 브리핑' },
   { label:'TMT',        match:'TMT' },
   { label:'Intel View', match:'INTEL VIEW' },
-  { label:'대처 전략',  match:'대처 전략' }
+  { label:'대응 전략',  match:['대처 전략', '대응 인사이트', '대응 전략'] }
 ];
 
 function normHead(s){
@@ -616,20 +628,63 @@ function normHead(s){
 function matchSection(line){
   var t = normHead(line);
   if (!t || t.length > 70) return -1;
+  if (NAME_RE.test(t)) return -1;                       // "Brian Heavey (TMT)" 같은 사람 소제목은 섹션 아님
   var up = t.toUpperCase();
   for (var i = 0; i < INTEL_SECTIONS.length; i++){
-    if (up.indexOf(INTEL_SECTIONS[i].match.toUpperCase()) >= 0) return i;
+    var ms = [].concat(INTEL_SECTIONS[i].match);
+    for (var k = 0; k < ms.length; k++) if (up.indexOf(ms[k].toUpperCase()) >= 0) return i;
   }
   return -1;
 }
-function bodyHtml(lines){
-  var h = '';
-  lines.forEach(function(t){
-    if (!t) return;
-    var isSub = /^#{1,6}\s/.test(t) || /^\*\*[^*]+\*\*$/.test(t);
-    if (isSub) h += '<div class="i-h">' + esc(normHead(t)) + '</div>';
-    else       h += '<p class="i-p">' + md(t) + '</p>';
+/* 본문 꾸미기: **굵게**, "라벨: 내용"의 라벨 굵게, +0.6% / -3bp 같은 부호 숫자 색칠 */
+function intelInline(t, labelBold){
+  var h = esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+  if (labelBold && h.indexOf('<b>') < 0) {
+    var m = h.match(/^([^:：]{2,22})[:：]\s*(.+)$/);
+    if (m && !/https?$/.test(m[1])) h = '<b>' + m[1] + '</b> ' + m[2];
+  }
+  return h.replace(/(^|[\s(（])([+\-−]\d[\d,.]*\s?(?:%|bp|bps|%p))/g, function(_, pre, num){
+    return pre + '<span class="' + (num.charAt(0) === '+' ? 'i-up' : 'i-dn') + '">' + num + '</span>';
   });
+}
+
+/* 소제목 줄: "이름 (섹터) — 주제", "Tactical View: …", "# 제목", "**제목**" */
+function intelWho(t){
+  var c = normHead(t.replace(/^[-*•]\s+/, ''));
+  var m = c.match(/^([^:：(（]{2,30})[:：]\s*(.+)$/);           // "라벨: 내용"
+  if (m) return '<div class="i-who"><span class="n">' + esc(m[1]) + '</span><span class="sub">' + esc(m[2]) + '</span></div>';
+  m = c.match(/^(.+?)\s*[(（]([^)）]{1,30})[)）]\s*(?:[—–-]\s*(.+))?$/);
+  if (m) m[1] = m[1].replace(/\s*[—–-]\s*$/, '');
+  if (m) return '<div class="i-who"><span class="n">' + esc(m[1]) + '</span><span class="tag">' + esc(m[2]) + '</span>' +
+                (m[3] ? '<span class="sub">' + esc(m[3]) + '</span>' : '') + '</div>';
+  m = c.match(/^(.{2,30}?)\s*(?:[:：]|[—–]\s)\s*(.+)$/);
+  if (m) return '<div class="i-who"><span class="n">' + esc(m[1]) + '</span><span class="sub">' + esc(m[2]) + '</span></div>';
+  return '<div class="i-who"><span class="n">' + esc(c) + '</span></div>';
+}
+
+var NAME_RE = /^[A-Z][A-Za-z'’.\-]+(?:\s+[A-Z][A-Za-z'’.\-]+){1,3}\s*[(（]/;   // 영문 이름 (섹터)
+
+function bodyHtml(lines){
+  // lines: 섹션 안의 줄들 ('' 은 빈 줄)
+  var h = '', list = [];
+  var flush = function(){ if (list.length) { h += '<ul class="i-ul">' + list.join('') + '</ul>'; list = []; } };
+  // 긴 서술형 줄이 대부분인 섹션(예: 대응 인사이트)은 문단으로, 나머지는 글머리표로 통일
+  var body = lines.filter(function(x){ return x && !NAME_RE.test(x); });
+  var avg = body.length ? body.reduce(function(a, x){ return a + x.length; }, 0) / body.length : 0;
+  var paraMode = avg > 110;
+  for (var i = 0; i < lines.length; i++){
+    var t = lines[i];
+    if (!t) continue;
+    var prevBlank = i === 0 || !lines[i - 1];
+    var nextBlank = i === lines.length - 1 || !lines[i + 1];
+    var isHead = /^#{1,6}\s/.test(t) || /^\*\*[^*]+\*\*$/.test(t) || NAME_RE.test(t) ||
+                 (prevBlank && nextBlank && t.length <= 60 && i < lines.length - 1);
+    if (isHead) { flush(); h += intelWho(t); continue; }
+    var item = t.replace(/^(?:[-*•·]|\d{1,2}[.)])\s+/, '');
+    if (paraMode) { flush(); h += '<p class="i-p">' + intelInline(item, false) + '</p>'; }
+    else list.push('<li>' + intelInline(item, true) + '</li>');
+  }
+  flush();
   return h || '<p class="i-p" style="color:var(--tx4)">내용 없음</p>';
 }
 
@@ -641,8 +696,9 @@ function renderIntel(text){
 
   String(text).split('\n').forEach(function(line){
     var t = line.trim();
-    if (!t) return;
+    if (!t) { if (cur) cur.lines.push(''); return; }     // 빈 줄은 소제목 구분에 씀
     var m = matchSection(t);
+    if (m >= 0 && blocks.some(function(b){ return b.idx === m; })) m = -1;   // 같은 섹션은 처음 한 번만
     if (m >= 0){
       cur = { idx:m, title:normHead(t), lines:[] };
       blocks.push(cur);
@@ -765,7 +821,7 @@ async function loadAll(){
       irows.forEach(function(r){
         if (!idate) idate = parseDate(cell(r, 0));
         var v = cell(r, 1);
-        if (v) text += v + '\n';
+        text += (v ? v : '') + '\n';                  // 빈 줄도 유지 (소제목 구분용)
       });
       document.getElementById('i-date').textContent =
         idate ? (longKo(idate) + ' 작성') : '날짜 정보 없음';
