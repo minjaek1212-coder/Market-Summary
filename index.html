@@ -221,6 +221,64 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
 .wl-news small{display:block;font-size:11px;color:var(--tx4);margin-top:2px}
 .wl-empty{font-size:13px;color:var(--tx4)}
 
+/* bear monitor */
+.br-stage{background:var(--card);border-radius:14px;padding:18px;margin-bottom:11px}
+.br-st-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.br-st-nm{display:flex;align-items:center;gap:10px}
+.br-st-nm b{font-size:22px;font-weight:700;letter-spacing:-.02em}
+.br-st-nm span{font-size:12px;color:var(--tx3)}
+.br-mode{font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;letter-spacing:.02em}
+.br-mode.bull{box-shadow:inset 0 0 0 1px var(--up);color:var(--up)}
+.br-mode.bear{background:var(--dn);color:#1a0f0d}
+.br-lv0{color:var(--up)} .br-lv1{color:var(--warn-tx)} .br-lv2{color:var(--dn)} .br-lv3{color:var(--dn)}
+.br-act{margin-top:10px;font-size:13.5px;color:var(--tx2);line-height:1.6;word-break:keep-all}
+.br-dots{display:flex;gap:6px;margin-top:14px}
+.br-dots a{flex:1;text-align:center;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--tx4);padding:6px 0 5px;border-radius:7px;background:var(--bg);border-top:3px solid var(--line)}
+.br-dots a.r{border-top-color:var(--dn);color:var(--dn)}
+.br-dots a.y{border-top-color:var(--warn-tx);color:var(--warn-tx)}
+.br-dots a.g{border-top-color:var(--up);color:var(--tx3)}
+.br-reg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.br-reg div{min-width:0}
+.br-reg small{display:block;font-size:10.5px;color:var(--tx4);font-weight:600;margin-bottom:2px}
+.br-reg span{font-family:'JetBrains Mono',monospace;font-size:13.5px;color:var(--tx2);font-weight:500}
+.br-ladder{display:flex;gap:4px;margin-top:12px}
+.br-ladder div{flex:1;font-size:10.5px;text-align:center;padding:5px 2px;border-radius:6px;background:var(--bg);color:var(--tx4);line-height:1.35}
+.br-ladder div.on{background:var(--accent);color:#1a150d;font-weight:700}
+.br-ladder div i{display:block;font-style:normal;font-size:9.5px;opacity:.8}
+.br-sig{background:var(--card);border-radius:14px;padding:16px 18px;margin-bottom:11px;border-left:3px solid var(--line);scroll-margin-top:68px}
+.br-sig.r{border-left-color:var(--dn)} .br-sig.y{border-left-color:var(--warn-tx)} .br-sig.g{border-left-color:var(--up)}
+.br-sig-h{display:flex;align-items:baseline;gap:9px}
+.br-no{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);flex:none}
+.br-ti{font-size:15px;font-weight:700;color:var(--tx);letter-spacing:-.02em;flex:1;min-width:0}
+.br-ti i{font-style:normal;font-size:11px;color:var(--tx4);font-weight:500;margin-left:6px}
+.br-pill{flex:none;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:6px}
+.br-pill.r{background:var(--dn);color:#1a0f0d}
+.br-pill.y{background:var(--warn-bg);color:var(--warn-tx);box-shadow:inset 0 0 0 1px var(--warn-tx)}
+.br-pill.g{box-shadow:inset 0 0 0 1px var(--up);color:var(--up)}
+.br-pill.na{background:var(--bg);color:var(--tx4)}
+.br-row{display:flex;gap:14px;align-items:flex-end;margin-top:10px}
+.br-val{flex:1;min-width:0}
+.br-val b{display:block;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:var(--tx);letter-spacing:-.01em}
+.br-val ul{list-style:none;margin:6px 0 0;padding:0}
+.br-val li{font-size:12.5px;color:var(--tx3);line-height:1.6;word-break:keep-all}
+.br-spk{flex:none;width:150px;text-align:right}
+.br-spk svg{display:block;width:150px;height:46px}
+.br-spk small{display:block;font-size:10px;color:var(--tx4);margin-top:2px;white-space:nowrap}
+.br-rule{margin-top:10px;padding-top:9px;border-top:1px solid var(--line);font-size:11.5px;color:var(--tx4);line-height:1.6;display:flex;gap:10px;justify-content:space-between;align-items:baseline}
+.br-rule a{color:var(--tx3);text-decoration:none;white-space:nowrap}
+.br-rule a:hover{color:var(--tx)}
+.br-est{font-size:10.5px;font-weight:700;color:var(--warn-tx);margin-left:6px}
+.br-rot{display:grid;grid-template-columns:98px 1fr 1fr;gap:8px 10px;align-items:center;font-size:12.5px}
+.br-rot .h{font-size:10.5px;color:var(--tx4);font-weight:600}
+.br-rot .nm{color:var(--tx2);font-weight:600;line-height:1.3}
+.br-rot .nm i{display:block;font-style:normal;font-size:10px;color:var(--tx4);font-weight:500;line-height:1.35;margin-top:1px;word-break:break-all}
+.br-rot .nm.lead{color:var(--accent)}
+.br-bar{position:relative;height:18px;background:var(--bg);border-radius:5px;overflow:hidden}
+.br-bar:before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)}
+.br-bar span{position:absolute;top:3px;bottom:3px;border-radius:3px}
+.br-bar em{position:absolute;top:0;font-style:normal;font-family:'JetBrains Mono',monospace;font-size:10.5px;line-height:18px;color:var(--tx2)}
+.br-err{font-size:12px;color:var(--warn-tx);margin:0 0 11px}
+
 @media (max-width:560px){
   body{font-size:14.5px}
   .wrap,.nav-in{padding:0 12px}
@@ -231,6 +289,12 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
   .tbl td:first-child{font-size:12px}
   .tbl{font-size:12.5px}
   .px{font-size:16px}
+  .br-spk,.br-spk svg{width:118px}
+  .br-val b{font-size:16px}
+  .br-ti i{display:block;margin:2px 0 0}
+  .br-rule{flex-direction:column;gap:4px}
+  .br-reg{grid-template-columns:repeat(2,1fr)}
+  .br-rot{grid-template-columns:78px 1fr 1fr}
 }
 </style>
 </head>
@@ -239,6 +303,7 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
 <nav class="nav"><div class="nav-in">
   <button class="on" data-p="daily">Daily Market</button>
   <button data-p="intel">Market Intel</button>
+  <button data-p="bear">Bear Monitor</button>
   <button data-p="wl">Watchlist</button>
   <button data-p="lt">Lottery</button>
   <button data-p="arc">Archive</button>
@@ -309,6 +374,16 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
     <div id="i-stale"></div>
     <div id="i-body"><div class="loading">불러오는 중…</div></div>
   </div>
+</div></div>
+
+<!-- ================= BEAR MONITOR ================= -->
+<div class="page" id="p-bear"><div class="wrap">
+  <div class="head">
+    <h1>Bear Monitor</h1>
+    <div class="meta"><span class="dot" id="br-dot"></span><span id="br-date">불러오는 중…</span><span class="cadence">매일 06·07시대 갱신</span></div>
+    <div class="note">베어마켓 7가지 조기경보 신호등. 빨간불이 점등 · 노란불은 주의.<br>점등 3개↑ 경고 · 5개↑ + 200일선 이탈 위험 · 고점 대비 -20% 베어 확인.</div>
+  </div>
+  <div id="br-body"><div class="loading">불러오는 중…</div></div>
 </div></div>
 
 <!-- ================= FX WEEKLY ================= -->
@@ -1151,6 +1226,116 @@ document.querySelectorAll('#lt-sort .lt-seg-btn').forEach(function(b){
   });
 });
 
+/* ---------- Bear Monitor ---------- */
+var BR_LIGHT = { r:'점등', y:'주의', g:'정상', na:'데이터 없음' };
+var BR_SPK_CAP = { 1:'10Y-2Y · 2년', 2:'A-D Line · 1년', 3:'HY OAS · 1년', 4:'정책금리 상단 · 4년', 5:'CAPE · 2년', 6:'샴 지표 · 2년', 7:'200일선 위 % · 60일' };
+var BR_LADDER = [['정상','0~2개'],['경고','3개↑'],['위험','5개↑ · 200일선↓'],['베어 확인','고점 -20%']];
+function brSign(v, d){ if (v == null || isNaN(v)) return '(확인 필요)'; return (v > 0 ? '+' : '') + Number(v).toFixed(d == null ? 1 : d); }
+function brSpark(sp){
+  if (!sp || !sp.v || sp.v.length < 2) return '';
+  var v = sp.v.filter(function(x){ return x != null && !isNaN(x); });
+  if (v.length < 2) return '';
+  var W = 150, H = 46, P = 3;
+  var ths = [sp.th, sp.th2].filter(function(x){ return x != null; });
+  var lo = Math.min.apply(null, v), hi = Math.max.apply(null, v);
+  ths.forEach(function(t){                 // 임계선이 너무 멀지 않으면 범위에 포함
+    var span = (hi - lo) || Math.abs(hi) || 1;
+    if (t >= lo - span * 1.5 && t <= hi + span * 1.5){ lo = Math.min(lo, t); hi = Math.max(hi, t); }
+  });
+  if (hi === lo){ hi += 1; lo -= 1; }
+  var x = function(i){ return P + i * (W - 2 * P) / (v.length - 1); };
+  var y = function(val){ return H - P - (val - lo) / (hi - lo) * (H - 2 * P); };
+  var d = '';
+  v.forEach(function(val, i){
+    if (!i) d = 'M' + x(0).toFixed(1) + ' ' + y(val).toFixed(1);
+    else if (sp.step) d += 'H' + x(i).toFixed(1) + 'V' + y(val).toFixed(1);
+    else d += 'L' + x(i).toFixed(1) + ' ' + y(val).toFixed(1);
+  });
+  var g = ths.filter(function(t){ return t >= lo && t <= hi; }).map(function(t){
+    return '<line x1="0" x2="' + W + '" y1="' + y(t).toFixed(1) + '" y2="' + y(t).toFixed(1) + '" stroke="#d4837b" stroke-opacity=".55" stroke-dasharray="3 3" stroke-width="1"/>';
+  }).join('');
+  var lx = x(v.length - 1), ly = y(v[v.length - 1]);
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true">' + g +
+         '<path d="' + d + '" fill="none" stroke="#b8996b" stroke-width="1.6" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>' +
+         '<circle cx="' + lx.toFixed(1) + '" cy="' + ly.toFixed(1) + '" r="2.4" fill="#e8e9ec"/></svg>';
+}
+function brBar(v, max){
+  if (v == null || isNaN(v)) return '<div class="br-bar"><em style="left:6px">(확인 필요)</em></div>';
+  var w = Math.min(50, Math.abs(v) / max * 50);
+  var col = v >= 0 ? 'var(--up)' : 'var(--dn)';
+  var bar = v >= 0 ? 'left:50%;width:' + w + '%' : 'right:50%;width:' + w + '%';
+  var lab = v >= 0 ? 'right:calc(50% + 4px)' : 'left:calc(50% + 4px)';
+  return '<div class="br-bar"><span style="' + bar + ';background:' + col + ';opacity:.75"></span><em style="' + lab + '">' + brSign(v) + '</em></div>';
+}
+function brRender(b){
+  var h = '';
+  if (b.errors && b.errors.length) h += '<p class="br-err">일부 데이터 오류: ' + esc(b.errors.join(' · ')) + '</p>';
+  var st = b.stage || {}, rg = b.regime || {}, sigs = b.signals || [];
+  var yN = sigs.filter(function(s){ return s.light === 'y'; }).length;
+  h += '<div class="br-stage"><div class="br-st-top"><div class="br-st-nm"><b class="br-lv' + (st.level || 0) + '">' + esc(st.name || '(확인 필요)') + '</b>' +
+       '<span class="num">점등 ' + (st.n || 0) + '/7 · 주의 ' + yN + '</span></div>' +
+       '<span class="br-mode ' + (rg.below200 ? 'bear' : 'bull') + '">' + (rg.below200 ? 'BEAR 모드' : 'BULL 모드') + '</span></div>' +
+       '<div class="br-act">' + esc(st.action || '') + '</div>';
+  h += '<div class="br-ladder">' + BR_LADDER.map(function(l, i){ return '<div class="' + (i === (st.level || 0) ? 'on' : '') + '">' + l[0] + '<i>' + l[1] + '</i></div>'; }).join('') + '</div>';
+  h += '<div class="br-dots">' + sigs.map(function(s){ return '<a href="#br-s' + s.no + '" class="' + (s.light || 'na') + '">' + s.no + '</a>'; }).join('') + '</div>';
+  h += '<div class="br-reg">' +
+       '<div><small>S&amp;P500</small><span>' + (rg.spx != null ? Number(rg.spx).toFixed(2) : '(확인 필요)') + '</span></div>' +
+       '<div><small>200일선 대비</small><span class="' + (rg.vs200 >= 0 ? 'up' : 'dn') + '">' + brSign(rg.vs200) + '%</span></div>' +
+       '<div><small>고점 대비</small><span class="' + (rg.dd <= -10 ? 'dn' : '') + '">' + brSign(rg.dd) + '%</span></div>' +
+       '<div><small>12개월</small><span class="' + (rg.r12 >= 0 ? 'up' : 'dn') + '">' + brSign(rg.r12) + '%</span></div></div></div>';
+
+  sigs.forEach(function(s){
+    var li = s.light || 'na';
+    h += '<div class="br-sig ' + li + '" id="br-s' + s.no + '"><div class="br-sig-h"><span class="br-no">0' + s.no + '</span>' +
+         '<span class="br-ti">' + esc(s.title) + '<i>' + esc(s.sub || '') + '</i></span><span class="br-pill ' + li + '">' + BR_LIGHT[li] + '</span></div>' +
+         '<div class="br-row"><div class="br-val"><b>' + esc(s.value || '(확인 필요)') + (s.estimated ? '<span class="br-est">근사치</span>' : '') + '</b>' +
+         '<ul>' + (s.lines || []).map(function(l){ return '<li>' + esc(l) + '</li>'; }).join('') + '</ul></div>';
+    var sv = brSpark(s.spark);
+    if (sv) h += '<div class="br-spk">' + sv + '<small>' + (BR_SPK_CAP[s.no] || '') + (s.spark.th != null ? ' · 점선 임계' : '') + '</small></div>';
+    h += '</div><div class="br-rule"><span>' + esc(s.rule || '') + '</span><span>' + (s.date ? esc(s.date) + ' · ' : '') +
+         (s.src ? '<a href="' + esc(s.src) + '" target="_blank" rel="noopener">출처 ↗</a>' : '') + '</span></div></div>';
+  });
+
+  var ro = b.rotation;
+  if (ro && ro.phases){
+    var mx = 1;
+    ro.phases.forEach(function(p){ [p.rel1m, p.rel3m].forEach(function(v){ if (v != null && Math.abs(v) > mx) mx = Math.abs(v); }); });
+    h += '<div class="sec"><div class="sec-h">섹터 로테이션 · SPY 대비 상대수익률(%p)</div><div class="br-rot"><span class="h">국면</span><span class="h">1개월</span><span class="h">3개월</span>';
+    ro.phases.forEach(function(p){
+      h += '<span class="nm' + (p.name === ro.leader ? ' lead' : '') + '">' + esc(p.name) + (p.name === ro.leader ? ' ◀' : '') + '<i>' + esc((p.etfs || []).join('·')) + '</i></span>' +
+           brBar(p.rel1m, mx) + brBar(p.rel3m, mx);
+    });
+    h += '</div><div class="note" style="margin-top:12px">1개월 기준 가장 강한 국면이 주도. 둔화·침체 국면이 주도하면 ⑦번 신호에 반영.' + (ro.date ? ' · ' + esc(ro.date) + ' 종가' : '') + '</div></div>';
+  }
+  var bd = b.breadth;
+  if (bd && bd.total){
+    h += '<div class="note" style="margin:4px 4px 0">시장 폭 계산: S&amp;P500 ' + bd.ok + '/' + bd.total + '종목' + (bd.estimated ? ' (데이터 부족 → RSP/SPY 근사치)' : '') + ' · 업데이트 ' + esc(b.updatedAt || '') + '</div>';
+  }
+  document.getElementById('br-body').innerHTML = h;
+}
+async function loadBear(){
+  try {
+    var res = await fetch('https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?sheet=BEAR&tqx=out:json');
+    var txt = await res.text();
+    var json = JSON.parse(txt.substring(txt.indexOf('{'), txt.lastIndexOf('}') + 1));
+    var raw = null;
+    ((json.table && json.table.rows) || []).forEach(function(r){
+      (r.c || []).forEach(function(c){ if (c && typeof c.v === 'string' && c.v.charAt(0) === '{') raw = c.v; });
+    });
+    if (!raw) throw new Error('BEAR 데이터 없음');
+    var b = JSON.parse(raw);
+    var d = parseDate(b.asOf);
+    document.getElementById('br-date').textContent = d ? (longKo(d) + ' 종가 기준') : (b.asOf || '날짜 정보 없음');
+    var dot = document.getElementById('br-dot');
+    var age = d ? daysAgo(d) : 99;
+    dot.className = 'dot ' + (age <= 4 ? 'ok' : 'no');
+    brRender(b);
+  } catch (e) {
+    console.error('Bear Monitor 로딩 실패:', e);
+    document.getElementById('br-body').innerHTML = '<p class="err">Bear Monitor 데이터를 불러오지 못했습니다. GAS 에서 brRunNow 실행 여부를 확인하세요.</p>';
+  }
+}
+
 /* ---------- 갱신 ---------- */
 var lastFetch = 0;
 function refresh(force){
@@ -1158,6 +1343,7 @@ function refresh(force){
   if (!force && now - lastFetch < 60000) return;
   lastFetch = now;
   loadAll();
+  loadBear();
 }
 window.addEventListener('load', function(){ refresh(true); });
 setInterval(function(){ refresh(false); }, 300000);
