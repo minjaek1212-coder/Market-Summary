@@ -291,6 +291,19 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
 .br-dg div{display:flex;gap:5px}
 .br-reg em{display:block;font-style:normal;font-size:10.5px;color:var(--dn);margin-top:1px}
 .br-mode-note{margin-top:10px;font-size:10.5px;color:var(--tx4)}
+.br-crit{margin-top:12px;padding-top:11px;border-top:1px solid var(--line)}
+.br-cr{display:grid;grid-template-columns:44px 1fr;gap:10px;padding:3px 0}
+.br-ck{align-self:start;display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--tx3);line-height:1.6}
+.br-ck:before{content:'';width:6px;height:6px;border-radius:50%;background:var(--tx4);flex:none}
+.br-ck.r{color:var(--dn)} .br-ck.r:before{background:var(--dn)}
+.br-ck.y{color:var(--warn-tx)} .br-ck.y:before{background:var(--warn-tx)}
+.br-ck.c:before,.br-ck.n:before{background:none;box-shadow:inset 0 0 0 1px var(--tx4)}
+.br-cr p{margin:0;font-size:12px;color:var(--tx3);line-height:1.6;word-break:keep-all}
+.br-cr p.cv{color:var(--tx4)}
+.br-cr i{display:block;font-style:normal;font-size:10.5px;color:var(--tx4);margin-bottom:1px}
+.br-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:8px;font-size:11px;color:var(--tx4)}
+.br-foot a{color:var(--tx3);text-decoration:none}
+.br-foot a:hover{color:var(--tx)}
 .br-err{font-size:12px;color:var(--warn-tx);margin:0 0 11px}
 
 @media (max-width:560px){
@@ -1282,6 +1295,23 @@ function brBar(v, max){
   var lab = v >= 0 ? 'right:calc(50% + 4px)' : 'left:calc(50% + 4px)';
   return '<div class="br-bar"><span style="' + bar + ';background:' + col + ';opacity:.75"></span><em style="' + lab + '">' + brSign(v) + '</em></div>';
 }
+var BR_CRIT_LBL = { r:'점등', y:'주의', c:'조건', n:'기준' };
+function brCrit(s){
+  var rows = [];
+  if (s.crit && s.crit.length){
+    ['r','y','c','n'].forEach(function(k){
+      var items = s.crit.filter(function(x){ return x[0] === k; }).map(function(x){ return x[1]; });
+      if (!items.length) return;
+      var hint = (k === 'r' || k === 'y') && items.length > 1 ? '<i>하나라도 해당</i>' : (k === 'c' && s.no === 4 ? '<i>대응성 인하 = 하나라도 해당</i>' : (k === 'c' && s.no === 2 ? '<i>약화 조건</i>' : ''));
+      rows.push('<div class="br-cr"><span class="br-ck ' + k + '">' + BR_CRIT_LBL[k] + '</span><div>' + hint +
+                items.map(function(t){ return '<p>' + esc(t) + '</p>'; }).join('') + '</div></div>');
+    });
+  } else if (s.rule) {
+    rows.push('<div class="br-cr"><span class="br-ck n">기준</span><div><p>' + esc(s.rule) + '</p></div></div>');
+  }
+  if (s.caveat) rows.push('<div class="br-cr"><span class="br-ck n">참고</span><div><p class="cv">' + esc(s.caveat) + '</p></div></div>');
+  return rows.length ? '<div class="br-crit">' + rows.join('') + '</div>' : '';
+}
 function brCard(s){
   var li = s.light || 'na', h = '';
   h += '<div class="br-sig ' + li + '" id="br-s' + s.no + '"><div class="br-sig-h"><span class="br-no">0' + s.no + '</span>' +
@@ -1293,8 +1323,8 @@ function brCard(s){
        (s.alert ? '<p class="lt-warn">' + esc(s.alert) + '</p>' : '') + '</div>';
   var sv = brSpark(s.spark);
   if (sv) h += '<div class="br-spk">' + sv + '<small>' + (BR_SPK_CAP[s.no] || '') + (s.spark.th != null ? ' · 점선 임계' : '') + '</small></div>';
-  h += '</div><div class="br-rule"><span>' + esc(s.rule || '') + (s.caveat ? '<em>' + esc(s.caveat) + '</em>' : '') + '</span><span class="br-src">' + (s.date ? esc(s.date) + ' · ' : '') +
-       (s.src ? '<a href="' + esc(s.src) + '" target="_blank" rel="noopener">출처 ↗</a>' : '') + '</span></div></div>';
+  h += '</div>' + brCrit(s) +
+       '<div class="br-foot">' + (s.date ? esc(s.date) : '') + (s.src ? '<a href="' + esc(s.src) + '" target="_blank" rel="noopener">출처 ↗</a>' : '') + '</div></div>';
   return h;
 }
 function brRender(b){
