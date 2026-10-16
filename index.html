@@ -300,6 +300,8 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
 .br-ck.c:before,.br-ck.n:before{background:none;box-shadow:inset 0 0 0 1px var(--tx4)}
 .br-cr p{margin:0;font-size:12px;color:var(--tx3);line-height:1.6;word-break:keep-all}
 .br-cr p.cv{color:var(--tx4)}
+.br-cr p.etf{display:grid;grid-template-columns:42px 1fr;gap:8px}
+.br-cr p.etf b{font-family:var(--mono);font-weight:600;color:var(--tx2);font-size:11.5px}
 .br-cr i{display:block;font-style:normal;font-size:10.5px;color:var(--tx4);margin-bottom:1px}
 .br-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:8px;font-size:11px;color:var(--tx4)}
 .br-foot a{color:var(--tx3);text-decoration:none}
@@ -1296,6 +1298,16 @@ function brBar(v, max){
   return '<div class="br-bar"><span style="' + bar + ';background:' + col + ';opacity:.75"></span><em style="' + lab + '">' + brSign(v) + '</em></div>';
 }
 var BR_CRIT_LBL = { r:'점등', y:'주의', c:'조건', n:'기준' };
+/* 카드에 나오는 ETF 설명 (종목 번호별) */
+var BR_ETF = {
+  2: [['RSP', 'S&P500 동일가중 · 500종목 각 약 0.2% → 평균 종목 성과'],
+      ['SPY', 'S&P500 시총가중 · 대형주 비중이 큼 → 지수 성과']],
+  3: [['BIZD', 'BDC(중견기업 대출 회사) ETF · 사모신용 흐름 대용']],
+  7: [['XLP', '필수소비재 · 식품·생활용품·할인점 (P&G, 코카콜라, 월마트)'],
+      ['XLY', '경기소비재 · 유통·자동차·외식 (아마존, 테슬라, 홈디포)'],
+      ['XLU', '유틸리티 · 전력·가스, 배당 높은 채권 대용 방어주'],
+      ['SPY', 'S&P500 시총가중 · 시장 전체']]
+};
 function brCrit(s){
   var rows = [];
   if (s.crit && s.crit.length){
@@ -1309,6 +1321,8 @@ function brCrit(s){
   } else if (s.rule) {
     rows.push('<div class="br-cr"><span class="br-ck n">기준</span><div><p>' + esc(s.rule) + '</p></div></div>');
   }
+  if (BR_ETF[s.no]) rows.push('<div class="br-cr"><span class="br-ck n">ETF</span><div>' +
+      BR_ETF[s.no].map(function(e){ return '<p class="etf"><b>' + e[0] + '</b>' + esc(e[1]) + '</p>'; }).join('') + '</div></div>');
   if (s.caveat) rows.push('<div class="br-cr"><span class="br-ck n">참고</span><div><p class="cv">' + esc(s.caveat) + '</p></div></div>');
   return rows.length ? '<div class="br-crit">' + rows.join('') + '</div>' : '';
 }
