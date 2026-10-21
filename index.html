@@ -306,6 +306,29 @@ h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--tx)
 .br-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:8px;font-size:11px;color:var(--tx4)}
 .br-foot a{color:var(--tx3);text-decoration:none}
 .br-foot a:hover{color:var(--tx)}
+.br-rh{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.br-rh-h{font-size:12.5px;font-weight:600;color:var(--tx2);margin-bottom:8px}
+.br-rh-h small,.br-rh-h2 small{font-weight:500;color:var(--tx4);font-size:11px;margin-left:6px}
+.br-rh-h2{font-size:12px;font-weight:600;color:var(--tx3);margin:16px 0 7px}
+.br-rh-leg{display:flex;flex-wrap:wrap;gap:4px 14px;margin-bottom:6px}
+.br-rh-leg span{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--tx2)}
+.br-rh-leg i,.br-rh-ch i,.br-rh-tip i{display:inline-block;width:10px;height:3px;border-radius:2px;flex:none}
+.br-rh-chart{position:relative}
+.br-rh-chart svg{display:block;touch-action:pan-y}
+.br-rh-chart .ax text{font-size:10px;fill:var(--tx4);font-family:var(--mono)}
+.br-rh-tip{display:none;position:absolute;top:4px;width:130px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:11px;color:var(--tx3);pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.35)}
+.br-rh-tip .d{font-family:var(--mono);color:var(--tx2);margin-bottom:4px}
+.br-rh-tip div{display:flex;align-items:center;gap:6px;line-height:1.6}
+.br-rh-tip span{flex:1}
+.br-rh-tip b{font-family:var(--mono);font-weight:600;color:var(--tx)}
+.br-rh-strip{display:flex;height:12px;border-radius:4px;overflow:hidden;gap:0}
+.br-rh-strip b{flex:1;min-width:0}
+.br-rh-ax{display:flex;justify-content:space-between;font-size:10px;color:var(--tx4);font-family:var(--mono);margin-top:4px}
+.br-rh-ch div{display:grid;grid-template-columns:86px 1fr auto;gap:10px;align-items:center;padding:6px 0;font-size:12px;color:var(--tx2)}
+.br-rh-ch div+div{border-top:1px solid var(--line)}
+.br-rh-ch .d,.br-rh-ch .n{font-family:var(--mono);font-size:11px;color:var(--tx4)}
+.br-rh-ch i{margin:0 5px 0 0;vertical-align:middle}
+.br-rh-none{font-size:12px;color:var(--tx4);margin:0}
 .br-err{font-size:12px;color:var(--warn-tx);margin:0 0 11px}
 
 @media (max-width:560px){
@@ -1379,14 +1402,103 @@ function brRender(b){
       h += '<span class="nm' + (p.name === ro.leader ? ' lead' : '') + '">' + esc(p.name) + (p.name === ro.leader ? ' ◀' : '') + '<i>' + esc((p.etfs || []).join('·')) + '</i></span>' +
            brBar(p.rel1m, mx) + brBar(p.rel3m, mx);
     });
-    h += '</div><div class="note" style="margin-top:12px">국면별 ETF 평균 수익률 − SPY 수익률. 1개월 기준 가장 강한 국면에 ◀ 표시 · 참고용 (⑦ 판정은 XLP/XLY·XLU/SPY 비율).' + (ro.date ? ' · ' + esc(ro.date) + ' 종가' : '') + '</div></div>';
+    h += '</div><div class="note" style="margin-top:12px">국면별 ETF 평균 수익률 − SPY 수익률. 1개월 기준 가장 강한 국면에 ◀ 표시 · 참고용 (⑦ 판정은 XLP/XLY·XLU/SPY 비율).' + (ro.date ? ' · ' + esc(ro.date) + ' 종가' : '') + '</div>' +
+         brRotHistHtml(ro.hist) + '</div>';
   }
   var bd = b.breadth;
   if (bd && bd.total){
     h += '<div class="note" style="margin:4px 4px 0">시장 폭 계산: S&amp;P500 ' + bd.ok + '/' + bd.total + '종목' + (bd.estimated ? ' (데이터 부족 → RSP/SPY 근사치)' : '') + ' · 업데이트 ' + esc(b.updatedAt || '') + '</div>';
   }
   document.getElementById('br-body').innerHTML = h;
+  brRotHistDraw();
 }
+
+/* ---------- 섹터 로테이션 히스토리 ---------- */
+var BR_ROT_COL = ['#3987e5', '#d95926', '#199e70', '#c98500'];   // 상승 · 인플레 · 둔화 · 침체 (고정 순서)
+var brRotH = null;
+function brRotHistHtml(hh){
+  brRotH = (hh && hh.d && hh.d.length > 1) ? hh : null;
+  if (!brRotH) return '';
+  var names = brRotH.names, n = brRotH.d.length;
+  var legend = '<div class="br-rh-leg">' + names.map(function(nm, k){
+    return '<span><i style="background:' + BR_ROT_COL[k] + '"></i>' + esc(nm) + '</span>'; }).join('') + '</div>';
+  var strip = '<div class="br-rh-strip">' + brRotH.lead.split('').map(function(c){
+    return '<b style="background:' + (c === '-' ? 'var(--line)' : BR_ROT_COL[+c]) + '"></b>'; }).join('') + '</div>' +
+    '<div class="br-rh-ax"><span>' + esc(brRotH.d[0]) + '</span><span>' + esc(brRotH.d[n - 1]) + '</span></div>';
+  var ch = (brRotH.changes || []).slice().reverse();
+  var list = ch.length ? '<div class="br-rh-ch">' + ch.map(function(c){
+    var k1 = names.indexOf(c.from), k2 = names.indexOf(c.to);
+    return '<div><span class="d">' + esc(c.d) + '</span><span><i style="background:' + BR_ROT_COL[k1] + '"></i>' + esc(c.from) +
+           ' → <i style="background:' + BR_ROT_COL[k2] + '"></i>' + esc(c.to) + '</span><span class="n">' + c.days + '일 유지</span></div>';
+  }).join('') + '</div>' : '<p class="br-rh-none">최근 1년 동안 확정된 주도 국면 변화 없음</p>';
+  return '<div class="br-rh">' +
+    '<div class="br-rh-h">최근 1년 흐름 <small>국면별 1개월 상대수익률(%p) · 거래일 기준</small></div>' + legend +
+    '<div class="br-rh-chart" id="br-rh-chart"></div>' +
+    '<div class="br-rh-h2">매일의 1개월 주도 국면</div>' + strip +
+    '<div class="br-rh-h2">주도 국면 변화 <small>5거래일 이상 이어진 경우만 · 최신순' + (brRotH.now ? ' · 현재 ' + esc(brRotH.now) : '') + '</small></div>' + list +
+    '</div>';
+}
+function brRotHistDraw(){
+  var el = document.getElementById('br-rh-chart');
+  if (!el || !brRotH || !el.clientWidth) return;     // 탭이 숨겨져 있으면 열릴 때 다시 그림
+  var H0 = brRotH, n = H0.d.length;
+  var W = Math.max(260, el.clientWidth), H = 180, PL = 30, PR = 6, PT = 8, PB = 20;
+  var all = [];
+  H0.s.forEach(function(a){ a.forEach(function(v){ if (v != null) all.push(v); }); });
+  var lo = Math.min(0, Math.min.apply(null, all)), hi = Math.max(0, Math.max.apply(null, all));
+  var span = hi - lo || 1, step = span > 24 ? 10 : span > 10 ? 5 : 2;
+  lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
+  var x = function(i){ return PL + i * (W - PL - PR) / (n - 1); };
+  var y = function(v){ return PT + (hi - v) / (hi - lo) * (H - PT - PB); };
+  var g = '';
+  for (var t = lo; t <= hi + 1e-9; t += step){
+    g += '<line x1="' + PL + '" x2="' + (W - PR) + '" y1="' + y(t) + '" y2="' + y(t) + '" stroke="' + (t === 0 ? '#5f6673' : '#21252f') + '" stroke-width="1"/>' +
+         '<text x="' + (PL - 5) + '" y="' + (y(t) + 3.5) + '" text-anchor="end">' + (t > 0 ? '+' : '') + t + '</text>';
+  }
+  var lastM = '', every = W < 480 ? 2 : 1, cnt = 0;
+  H0.d.forEach(function(d, i){
+    var m = d.slice(5, 7);
+    if (m !== lastM){
+      if (lastM && (cnt++ % every === 0) && x(i) < W - 18) g += '<text x="' + x(i) + '" y="' + (H - 5) + '" text-anchor="middle">' + (+m) + '월</text>';
+      lastM = m;
+    }
+  });
+  var paths = H0.s.map(function(a, k){
+    var d = '', pen = false;
+    a.forEach(function(v, i){
+      if (v == null){ pen = false; return; }
+      d += (pen ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1); pen = true;
+    });
+    return '<path d="' + d + '" fill="none" stroke="' + BR_ROT_COL[k] + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+  }).join('');
+  el.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="국면별 1개월 상대수익률 추이">' +
+    '<g class="ax">' + g + '</g>' + paths +
+    '<line id="br-rh-x" x1="0" x2="0" y1="' + PT + '" y2="' + (H - PB) + '" stroke="#868d99" stroke-width="1" style="display:none"/>' +
+    '<g id="br-rh-dots"></g></svg><div class="br-rh-tip" id="br-rh-tip"></div>';
+  var svg = el.querySelector('svg'), vline = el.querySelector('#br-rh-x'), dots = el.querySelector('#br-rh-dots'), tip = el.querySelector('#br-rh-tip');
+  function show(ev){
+    var r = svg.getBoundingClientRect(), px = ev.clientX - r.left;
+    var i = Math.round((px - PL) / (W - PL - PR) * (n - 1));
+    if (i < 0 || i >= n){ hide(); return; }
+    vline.setAttribute('x1', x(i)); vline.setAttribute('x2', x(i)); vline.style.display = '';
+    dots.innerHTML = H0.s.map(function(a, k){ return a[i] == null ? '' :
+      '<circle cx="' + x(i) + '" cy="' + y(a[i]) + '" r="4" fill="' + BR_ROT_COL[k] + '" stroke="#171a22" stroke-width="2"/>'; }).join('');
+    tip.innerHTML = '<div class="d">' + esc(H0.d[i]) + '</div>' + H0.names.map(function(nm, k){
+      var v = H0.s[k][i];
+      return '<div><i style="background:' + BR_ROT_COL[k] + '"></i><span>' + esc(nm) + '</span><b>' + (v == null ? '-' : (v > 0 ? '+' : '') + v.toFixed(1)) + '</b></div>';
+    }).join('');
+    tip.style.display = 'block';
+    var tx = x(i) + 12; if (tx + 130 > W) tx = x(i) - 142;
+    tip.style.left = Math.max(0, tx) + 'px';
+  }
+  function hide(){ vline.style.display = 'none'; dots.innerHTML = ''; tip.style.display = 'none'; }
+  svg.addEventListener('pointermove', show);
+  svg.addEventListener('pointerdown', show);
+  svg.addEventListener('pointerleave', hide);
+}
+var brRhT = null;
+window.addEventListener('resize', function(){ clearTimeout(brRhT); brRhT = setTimeout(brRotHistDraw, 150); });
+document.querySelector('.nav button[data-p="bear"]').addEventListener('click', function(){ setTimeout(brRotHistDraw, 0); });
 async function loadBear(){
   try {
     var res = await fetch('https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?sheet=BEAR&tqx=out:json');
