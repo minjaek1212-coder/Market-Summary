@@ -1355,7 +1355,7 @@ function brCard(s){
        '<span class="br-ti">' + esc(s.title) + '<i>' + esc(s.sub || '') + '</i></span>' +
        (s.role ? '<span class="br-role">' + esc(s.role) + '</span>' : '') +
        '<span class="br-pill ' + li + '">' + BR_LIGHT[li] + '</span></div>' +
-       '<div class="br-row"><div class="br-val"><b>' + esc(s.value || '(확인 필요)') + (s.estimated ? '<span class="br-est">근사치</span>' : '') + '</b>' +
+       '<div class="br-row"><div class="br-val"><b>' + esc(s.value || '(확인 필요)') + (s.estimated ? '<span class="br-est">근사치</span>' : '') + (s.stale ? '<span class="br-est">이전 값</span>' : '') + '</b>' +
        '<ul>' + (s.lines || []).map(function(l){ return '<li>' + esc(l) + '</li>'; }).join('') + '</ul>' +
        (s.alert ? '<p class="lt-warn">' + esc(s.alert) + '</p>' : '') + '</div>';
   var sv = brSpark(s.spark);
