@@ -1356,7 +1356,8 @@ function brCard(s){
        (s.role ? '<span class="br-role">' + esc(s.role) + '</span>' : '') +
        '<span class="br-pill ' + li + '">' + BR_LIGHT[li] + '</span></div>' +
        '<div class="br-row"><div class="br-val"><b>' + esc(s.value || '(확인 필요)') + (s.estimated ? '<span class="br-est">근사치</span>' : '') + (s.stale ? '<span class="br-est">이전 값</span>' : '') + '</b>' +
-       '<ul>' + (s.lines || []).map(function(l){ return '<li>' + esc(l) + '</li>'; }).join('') + '</ul>' +
+       '<ul>' + (li === 'na' ? '<li>데이터를 받지 못했어요 · 다음 갱신 때 다시 시도</li>' :
+                 (s.lines || []).map(function(l){ return '<li>' + esc(l) + '</li>'; }).join('')) + '</ul>' +
        (s.alert ? '<p class="lt-warn">' + esc(s.alert) + '</p>' : '') + '</div>';
   var sv = brSpark(s.spark);
   if (sv) h += '<div class="br-spk">' + sv + '<small>' + (BR_SPK_CAP[s.no] || '') + (s.spark.th != null ? ' · 점선 임계' : '') + '</small></div>';
@@ -1366,7 +1367,12 @@ function brCard(s){
 }
 function brRender(b){
   var h = '';
-  if (b.errors && b.errors.length) h += '<p class="br-err">일부 데이터 오류: ' + esc(b.errors.join(' · ')) + '</p>';
+  if (b.errors && b.errors.length){
+    // 상세 오류는 GAS 로그로만 보고, 화면에는 어떤 항목이 빠졌는지만 표시
+    var errNames = b.errors.map(function(e){ return String(e).split(':')[0].replace(/^\d+\s*/, '').trim(); })
+                           .filter(function(x, i, a){ return x && a.indexOf(x) === i; });
+    h += '<p class="br-err">일부 데이터를 받지 못했어요 (' + esc(errNames.join(', ')) + ') · 원본 사이트 점검 등으로 다음 갱신 때 다시 시도해요</p>';
+  }
   var st = b.stage || {}, rg = b.regime || {}, sigs = b.signals || [];
   var yN = sigs.filter(function(s){ return s.light === 'y'; }).length;
   var grouped = BR_GROUPS.map(function(g){ return [g[1], sigs.filter(function(s){ return s.group === g[0]; })]; });
